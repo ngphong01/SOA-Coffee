@@ -1,0 +1,184 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap');
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    @apply bg-coffee-50 text-coffee-900;
+  }
+
+  ::selection {
+    @apply bg-coffee-200 text-coffee-900;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-coffee-300 rounded-full hover:bg-coffee-400;
+  }
+}
+
+@layer components {
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold
+           bg-gradient-to-r from-coffee-700 to-coffee-600 text-white
+           shadow-md shadow-coffee-700/20
+           hover:shadow-lg hover:shadow-coffee-700/30 hover:from-coffee-800 hover:to-coffee-700
+           active:scale-[0.97] transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold
+           bg-white text-coffee-700 border-2 border-coffee-200
+           hover:bg-coffee-50 hover:border-coffee-300 hover:text-coffee-800
+           active:scale-[0.97] transition-all duration-200;
+  }
+  
+  .btn-danger {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold
+           bg-gradient-to-r from-red-600 to-red-500 text-white
+           shadow-md shadow-red-500/20
+           hover:shadow-lg hover:shadow-red-500/30 hover:from-red-700 hover:to-red-600
+           active:scale-[0.97] transition-all duration-200;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
+           text-coffee-600 hover:bg-coffee-100 active:bg-coffee-200 transition-all duration-200;
+  }
+
+  /* ── Forms ── */
+  .form-label {
+    @apply block text-sm font-semibold text-coffee-800 mb-1.5;
+  }
+  
+  .form-input {
+    @apply w-full px-4 py-2.5 rounded-xl text-sm
+           bg-white border-2 border-coffee-200 text-coffee-900
+           placeholder:text-coffee-300
+           focus:outline-none focus:border-coffee-500 focus:ring-4 focus:ring-coffee-500/10
+           transition-all duration-200;
+  }
+
+  .form-input::placeholder {
+    @apply text-coffee-300;
+  }
+
+  textarea.form-input {
+    @apply resize-none;
+  }
+
+  select.form-input {
+    @apply appearance-none cursor-pointer pr-10;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236F4E37' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+  }
+
+  input[type="checkbox"] {
+    @apply w-4 h-4 rounded-md border-2 border-coffee-300 text-coffee-700
+           focus:ring-4 focus:ring-coffee-500/10 cursor-pointer;
+  }
+
+  input[type="date"].form-input,
+  input[type="time"].form-input {
+    @apply cursor-pointer;
+  }
+
+  /* ── Cards ── */
+  .card {
+    @apply bg-white rounded-2xl border border-coffee-100 shadow-card p-6
+           hover:shadow-elevated transition-shadow duration-300;
+  }
+
+  .card-glass {
+    @apply bg-white/80 backdrop-blur-xl rounded-2xl border border-white/50
+           shadow-card p-6;
+  }
+
+  .card-stat {
+    @apply relative overflow-hidden bg-white rounded-2xl border border-coffee-100
+           shadow-card p-5 hover:shadow-elevated transition-all duration-300
+           hover:-translate-y-0.5;
+  }
+
+  /* ── Badges ── */
+  .badge-success { @apply inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200; }
+  .badge-warning { @apply inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-700 border border-amber-200; }
+  .badge-danger  { @apply inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full bg-red-50 text-red-700 border border-red-200; }
+  .badge-neutral { @apply inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-50 text-gray-600 border border-gray-200; }
+  .badge-info    { @apply inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full bg-sky-50 text-sky-700 border border-sky-200; }
+
+  /* ── Tables ── */
+  .table-header {
+    @apply text-left text-xs font-semibold uppercase tracking-wider text-coffee-400 py-3 px-4;
+  }
+  
+  .table-row {
+    @apply border-b border-coffee-50 hover:bg-coffee-50/50 transition-colors duration-150;
+  }
+  
+  .table-cell {
+    @apply py-3.5 px-4 text-sm text-coffee-800;
+  }
+
+  /* ── Page header ── */
+  .page-header {
+    @apply flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold text-coffee-900 tracking-tight;
+  }
+
+  .page-subtitle {
+    @apply text-sm text-coffee-500 mt-1;
+  }
+
+  /* ── Loading skeleton ── */
+  .skeleton {
+    @apply animate-pulse bg-coffee-100 rounded-lg;
+  }
+
+  /* ── Toast customization ── */
+  .toast-custom {
+    @apply !bg-white !text-coffee-900 !shadow-elevated !rounded-2xl !border !border-coffee-100;
+  }
+}
+
+/* ── Animations utility ── */
+@layer utilities {
+  .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+  .animate-slide-up { animation: slideUp 0.4s ease-out; }
+  .animate-scale-in { animation: scaleIn 0.3s ease-out; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}

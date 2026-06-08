@@ -1,0 +1,139 @@
+# =====================================================
+# COFFEE SHOP - DEVELOPMENT MODE (Hot Reload)
+# Sửa code → save → thấy ngay, không cần rebuild Docker
+# Chạy: docker compose -f docker-compose.dev.yml up -d
+# =====================================================
+
+# Kế thừa từ docker-compose.yml chính
+services:
+  # ============ BACKEND SERVICES ============
+  # Tất cả services dùng node --watch (Node 18+) để tự restart khi code thay đổi
+  auth-service:
+    volumes:
+      - ./shared:/app/shared
+      - ./services/auth-service/src:/app/services/auth-service/src
+    command: sh -c "cd /app && node --watch services/auth-service/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  user-service:
+    volumes:
+      - ./shared:/app/shared
+      - ./services/user-service/src:/app/services/user-service/src
+    command: sh -c "cd /app && node --watch services/user-service/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  product-service:
+    volumes:
+      - ./shared:/app/shared
+      - ./services/product-service/src:/app/services/product-service/src
+    command: sh -c "cd /app && node --watch services/product-service/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  category-service:
+    volumes:
+      - ./shared:/app/shared
+      - ./services/category-service/src:/app/services/category-service/src
+    command: sh -c "cd /app && node --watch services/category-service/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  inventory-service:
+    volumes:
+      - ./shared:/app/shared
+      - ./services/inventory-service/src:/app/services/inventory-service/src
+    command: sh -c "cd /app && node --watch services/inventory-service/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  order-service:
+    volumes:
+      - ./shared:/app/shared
+      - ./services/order-service/src:/app/services/order-service/src
+    command: sh -c "cd /app && node --watch services/order-service/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  payment-service:
+    volumes:
+      - ./shared:/app/shared
+      - ./services/payment-service/src:/app/services/payment-service/src
+    command: sh -c "cd /app && node --watch services/payment-service/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  employee-service:
+    volumes:
+      - ./shared:/app/shared
+      - ./services/employee-service/src:/app/services/employee-service/src
+    command: sh -c "cd /app && node --watch services/employee-service/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  supplier-service:
+    volumes:
+      - ./shared:/app/shared
+      - ./services/supplier-service/src:/app/services/supplier-service/src
+    command: sh -c "cd /app && node --watch services/supplier-service/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  promotion-service:
+    volumes:
+      - ./shared:/app/shared
+      - ./services/promotion-service/src:/app/services/promotion-service/src
+    command: sh -c "cd /app && node --watch services/promotion-service/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  notification-service:
+    volumes:
+      - ./shared:/app/shared
+      - ./services/notification-service/src:/app/services/notification-service/src
+    command: sh -c "cd /app && node --watch services/notification-service/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  analytics-service:
+    volumes:
+      - ./shared:/app/shared
+      - ./services/analytics-service/src:/app/services/analytics-service/src
+    command: sh -c "cd /app && node --watch services/analytics-service/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  logging-service:
+    volumes:
+      - ./shared:/app/shared
+      - ./services/logging-service/src:/app/services/logging-service/src
+    command: sh -c "cd /app && node --watch services/logging-service/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  # ============ API GATEWAY ============
+  api-gateway:
+    volumes:
+      - ./shared:/app/shared
+      - ./api-gateway/src:/app/api-gateway/src
+    command: sh -c "cd /app && node --watch api-gateway/src/index.js"
+    environment:
+      - NODE_ENV=development
+
+  # ============ FRONTEND (React HMR) ============
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/package.json:/app/package.json
+    environment:
+      - NODE_ENV=development
+      - WDS_SOCKET_PORT=0
+      - DANGEROUSLY_DISABLE_HOST_CHECK=true

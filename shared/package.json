@@ -1,0 +1,15 @@
+{
+  "name": "coffee-shop-shared",
+  "version": "1.0.0",
+  "description": "Shared utilities for Coffee Shop Microservices",
+  "main": "index.js",
+  "dependencies": {
+    "mysql2": "^3.6.0",
+    "redis": "^4.6.7",
+    "amqplib": "^0.10.3",
+    "winston": "^3.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "express-validator": "^7.1.0"
+  }
+}
