@@ -1,0 +1,21 @@
+# =====================================================
+# FRONTEND - DEVELOPMENT MODE (React HMR)
+# Hot Module Replacement: sửa code → tự động cập nhật browser
+# =====================================================
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Cài đặt dependencies (bao gồm devDependencies cho react-scripts)
+COPY package.json ./
+RUN npm install && npm cache clean --force
+
+# Expose ports: 5173 cho Vite/dev-server, 80 cho nginx fallback
+EXPOSE 5173 80
+
+# Chạy React dev server với hot reload
+ENV CI=true
+ENV WDS_SOCKET_PORT=0
+ENV DANGEROUSLY_DISABLE_HOST_CHECK=true
+
+CMD ["npx", "react-scripts", "start"]
