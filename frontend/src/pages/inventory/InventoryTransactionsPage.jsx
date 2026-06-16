@@ -63,7 +63,6 @@ export default function InventoryTransactionsPage() {
     { key: 'quantity_before', label: 'Trước', render: (v) => <span className="text-gray-500">{v}</span> },
     { key: 'quantity_after', label: 'Sau', render: (v) => <span className="font-semibold">{v}</span> },
     { key: 'created_by_name', label: 'Người thao tác', render: (v) => v || '-' },
-    { key: 'supplier_name', label: 'Nhà cung cấp', render: (v) => v || '-' },
     { key: 'reference_no', label: 'Tham chiếu', render: (v) => <span className="font-mono text-xs">{v || '-'}</span> },
     { key: 'created_at', label: 'Ngày', render: (v) => <span className="text-xs text-gray-500">{v ? new Date(v).toLocaleString('vi-VN') : '-'}</span> },
   ];

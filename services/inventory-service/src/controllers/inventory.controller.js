@@ -3,6 +3,7 @@ const { Cache } = require('../../../../shared/redis/client');
 const { publish } = require('../../../../shared/rabbitmq/client');
 const EVENTS = require('../../../../shared/rabbitmq/events');
 const ApiResponse = require('../../../../shared/utils/response');
+const AuditLog = require('../../../../shared/utils/auditLog');
 const createLogger = require('../../../../shared/utils/logger');
 
 const logger = createLogger('Inventory-Controller');
@@ -133,7 +134,7 @@ exports.getOne = async (req, res) => {
 
 exports.importStock = async (req, res) => {
   try {
-    const { items, supplier_id = null, reference_no = null, notes = null } = req.body;
+    const { items, reference_no = null, notes = null } = req.body;
     const userId = req.headers['x-user-id'] || 1;
 
     if (!items || items.length === 0) {
@@ -167,11 +168,11 @@ exports.importStock = async (req, res) => {
 
         await conn.execute(
           `INSERT INTO inventory_transactions
-            (product_id, user_id, supplier_id, type, quantity, quantity_before,
+            (product_id, user_id, type, quantity, quantity_before,
              quantity_after, unit_cost, total_cost, reference_no, notes)
            VALUES (?, ?, ?, 'import', ?, ?, ?, ?, ?, ?, ?)`,
           [
-            product_id, userId, supplier_id, quantity,
+            product_id, userId, quantity,
             quantityBefore, quantityAfter,
             unit_cost, unit_cost * quantity,
             reference_no, notes,
@@ -187,11 +188,19 @@ exports.importStock = async (req, res) => {
     await publish(EVENTS.STOCK_IMPORTED, {
       items: results,
       userId,
-      supplierId: supplier_id,
       referenceNo: reference_no,
     });
 
     await checkAndPublishLowStockAlerts(items.map((i) => i.product_id));
+
+    await AuditLog.log({
+      userId,
+      action: 'IMPORT_STOCK',
+      module: 'inventory',
+      entityType: 'inventory_transaction',
+      newValues: { itemCount: results.length, referenceNo: reference_no },
+      ...AuditLog.extractRequestInfo(req),
+    });
 
     return ApiResponse.success(res, results, `Successfully imported ${items.length} items`);
   } catch (error) {
@@ -248,6 +257,15 @@ exports.exportStock = async (req, res) => {
 
     await checkAndPublishLowStockAlerts(items.map((i) => i.product_id));
 
+    await AuditLog.log({
+      userId,
+      action: 'EXPORT_STOCK',
+      module: 'inventory',
+      entityType: 'inventory_transaction',
+      newValues: { itemCount: results.length, referenceNo: reference_no },
+      ...AuditLog.extractRequestInfo(req),
+    });
+
     return ApiResponse.success(res, results, `Successfully exported ${items.length} items`);
   } catch (error) {
     logger.error('Export stock error:', error);
@@ -287,6 +305,17 @@ exports.adjustStock = async (req, res) => {
 
     await checkAndPublishLowStockAlerts([product_id]);
 
+    await AuditLog.log({
+      userId,
+      action: 'ADJUST_STOCK',
+      module: 'inventory',
+      entityType: 'inventory',
+      entityId: product_id,
+      oldValues: { quantity: quantityBefore },
+      newValues: { quantity: new_quantity, diff, reason },
+      ...AuditLog.extractRequestInfo(req),
+    });
+
     return ApiResponse.success(res, { product_id, quantityBefore, new_quantity, diff }, 'Stock adjusted');
   } catch (error) {
     logger.error('Adjust stock error:', error);
@@ -317,12 +346,10 @@ exports.getTransactions = async (req, res) => {
           it.id, it.uuid, it.type, it.quantity, it.quantity_before, it.quantity_after,
           it.unit_cost, it.total_cost, it.reference_no, it.notes, it.created_at,
           p.name AS product_name, p.sku AS product_sku, p.thumbnail_url,
-          u.full_name AS created_by_name,
-          s.company_name AS supplier_name
+          u.full_name AS created_by_name
          FROM inventory_transactions it
          JOIN products p ON it.product_id = p.id
          JOIN users u ON it.user_id = u.id
-         LEFT JOIN suppliers s ON it.supplier_id = s.id
          ${where}
          ORDER BY it.created_at DESC
          LIMIT ? OFFSET ?`,

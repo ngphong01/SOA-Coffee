@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { Bell, Save, Settings, Shield, Store, Users, Camera, Upload, Mail, Phone, MapPin, Globe, Clock } from 'lucide-react';
+import { Save, Settings, Shield, Store, Users, Camera, Upload, Mail, Phone, MapPin, Globe, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { settingsAPI } from '../../api/settings.api';
 import { useAuth } from '../../hooks/useAuth';
@@ -7,16 +7,7 @@ import { useAuth } from '../../hooks/useAuth';
 const tabs = [
   { id: 'general', label: 'Cài đặt chung', icon: Store },
   { id: 'roles', label: 'Phân quyền', icon: Shield },
-  { id: 'notifications', label: 'Thông báo', icon: Bell },
   { id: 'users', label: 'Tài khoản', icon: Users },
-];
-
-const NOTIFICATIONS = [
-  { key: 'low_stock', label: 'Cảnh báo tồn kho thấp', desc: 'Thông báo khi sản phẩm sắp hết hàng', icon: '📦' },
-  { key: 'new_order', label: 'Đơn hàng mới', desc: 'Thông báo khi có đơn mới', icon: '🛒' },
-  { key: 'payment_failed', label: 'Thanh toán thất bại', desc: 'Cảnh báo khi giao dịch thất bại', icon: '💳' },
-  { key: 'daily_report', label: 'Báo cáo hàng ngày', desc: 'Gửi báo cáo doanh thu cuối ngày', icon: '📊' },
-  { key: 'weekly_report', label: 'Báo cáo hàng tuần', desc: 'Gửi tổng kết doanh thu mỗi tuần', icon: '📈' },
 ];
 
 const PERMISSIONS = [
@@ -27,17 +18,17 @@ const PERMISSIONS = [
   { key: 'payments', label: 'Thanh toán' },
   { key: 'customers', label: 'Khách hàng' },
   { key: 'employees', label: 'Nhân viên' },
-  { key: 'suppliers', label: 'Nhà cung cấp' },
-  { key: 'promotions', label: 'Khuyến mãi' },
   { key: 'analytics', label: 'Báo cáo' },
   { key: 'settings', label: 'Cài đặt' },
 ];
 
 const ROLES_CONFIG = {
+  super_admin: { label: 'Super Admin', color: 'bg-rose-100 text-rose-700 border-rose-200' },
   admin: { label: 'Admin', color: 'bg-red-100 text-red-700 border-red-200' },
   manager: { label: 'Quản lý', color: 'bg-purple-100 text-purple-700 border-purple-200' },
   cashier: { label: 'Thu ngân', color: 'bg-blue-100 text-blue-700 border-blue-200' },
   barista: { label: 'Pha chế', color: 'bg-amber-100 text-amber-700 border-amber-200' },
+  viewer: { label: 'Xem', color: 'bg-gray-100 text-gray-700 border-gray-200' },
 };
 
 export default function SettingsPage() {
@@ -52,7 +43,6 @@ export default function SettingsPage() {
     timezone: 'Asia/Ho_Chi_Minh', currency: 'VND',
     open_time: '07:00', close_time: '22:00', tax_rate: '10',
   });
-  const [notifications, setNotifications] = useState({ low_stock: true, new_order: true, payment_failed: true, daily_report: false, weekly_report: true });
   const [roles, setRoles] = useState({});
   const [users, setUsers] = useState([]);
   const [profileForm, setProfileForm] = useState({ full_name: '', email: '', phone: '', avatar_url: '' });
@@ -73,12 +63,11 @@ export default function SettingsPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [generalRes, notifRes, rolesRes, usersRes] = await Promise.allSettled([
-          settingsAPI.getGeneral(), settingsAPI.getNotifications(),
+        const [generalRes, rolesRes, usersRes] = await Promise.allSettled([
+          settingsAPI.getGeneral(),
           settingsAPI.getRoles(), settingsAPI.getUsers(),
         ]);
         if (generalRes.status === 'fulfilled' && generalRes.value.data?.data) setGeneralForm((prev) => ({ ...prev, ...generalRes.value.data.data }));
-        if (notifRes.status === 'fulfilled' && notifRes.value.data?.data) setNotifications(notifRes.value.data.data);
         if (rolesRes.status === 'fulfilled' && rolesRes.value.data?.data) setRoles(rolesRes.value.data.data);
         if (usersRes.status === 'fulfilled' && usersRes.value.data?.data) setUsers(usersRes.value.data.data);
       } catch { /* ignore */ }
@@ -89,10 +78,6 @@ export default function SettingsPage() {
   const handleSaveGeneral = async (e) => {
     e.preventDefault(); setSaving(true);
     try { await settingsAPI.updateGeneral(generalForm); toast.success('Đã lưu cài đặt chung'); } catch { toast.error('Không lưu được'); } finally { setSaving(false); }
-  };
-  const handleSaveNotifications = async () => {
-    setSaving(true);
-    try { await settingsAPI.updateNotifications(notifications); toast.success('Đã lưu thông báo'); } catch { toast.error('Không lưu được'); } finally { setSaving(false); }
   };
   const handleSaveRoles = async () => {
     setSaving(true);
@@ -277,47 +262,6 @@ export default function SettingsPage() {
                 </table>
               </div>
               <button type="button" onClick={handleSaveRoles} disabled={saving} className="btn-primary"><Save size={16} /> {saving ? 'Đang lưu...' : 'Lưu phân quyền'}</button>
-            </div>
-          )}
-
-          {/* ── Notifications Tab ── */}
-          {activeTab === 'notifications' && (
-            <div className="card space-y-5">
-              <div>
-                <h2 className="text-lg font-bold text-coffee-900 flex items-center gap-2"><Bell size={20} className="text-coffee-600" />Cài đặt thông báo</h2>
-                <p className="text-sm text-coffee-500 mt-1">Chọn loại thông báo bạn muốn nhận</p>
-              </div>
-              <div className="space-y-3">
-                {NOTIFICATIONS.map((item) => (
-                  <div key={item.key}
-                    className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer ${
-                      notifications[item.key] ? 'border-coffee-200 bg-coffee-50/30' : 'border-gray-100 bg-white hover:border-gray-200'
-                    }`}
-                    onClick={() => setNotifications((prev) => ({ ...prev, [item.key]: !prev[item.key] }))}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl transition-colors ${
-                        notifications[item.key] ? 'bg-coffee-100' : 'bg-gray-100'
-                      }`}>
-                        {item.icon}
-                      </div>
-                      <div>
-                        <p className={`font-semibold text-sm transition-colors ${notifications[item.key] ? 'text-coffee-900' : 'text-coffee-600'}`}>{item.label}</p>
-                        <p className="text-xs text-coffee-400 mt-0.5">{item.desc}</p>
-                      </div>
-                    </div>
-                    <button type="button" onClick={(e) => { e.stopPropagation(); setNotifications((prev) => ({ ...prev, [item.key]: !prev[item.key] })); }}
-                      className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
-                        notifications[item.key] ? 'bg-coffee-600 shadow-md shadow-coffee-300/30' : 'bg-gray-200'
-                      }`}>
-                      <span className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform duration-300 ${
-                        notifications[item.key] ? 'translate-x-7' : 'translate-x-0.5'
-                      }`} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <button type="button" onClick={handleSaveNotifications} disabled={saving} className="btn-primary"><Save size={16} /> {saving ? 'Đang lưu...' : 'Lưu thông báo'}</button>
             </div>
           )}
 

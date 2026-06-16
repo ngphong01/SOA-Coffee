@@ -1,6 +1,9 @@
 const { query } = require('../../../../shared/database/mysql');
 const { Cache } = require('../../../../shared/redis/client');
 const ApiResponse = require('../../../../shared/utils/response');
+const createLogger = require('../../../../shared/utils/logger');
+
+const logger = createLogger('Analytics-Controller');
 
 const periodToDays = {
   today: 0,

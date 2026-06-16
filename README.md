@@ -5,7 +5,7 @@ Enterprise microservices platform for coffee shop operations.
 ## Stack
 
 - **API Gateway** (port 3000) — routing, JWT, Swagger docs
-- **15 microservices** — auth, users, products, categories, inventory, orders, payments, employees, suppliers, promotions, notifications, analytics, logging
+- **8 microservices** — auth, users (incl. employees, customers, settings), products, categories, inventory, orders, payments, analytics
 - **MySQL 8**, **Redis 7**, **RabbitMQ 3.12**
 - **React + Vite** frontend (port 80)
 
@@ -20,12 +20,12 @@ docker compose up --build -d
 
 ## URLs
 
-| Service | URL |
-|---------|-----|
-| Frontend | http://localhost |
-| API Gateway | http://localhost:3000 |
+| Service      | URL                            |
+| ------------ | ------------------------------ |
+| Frontend     | http://localhost               |
+| API Gateway  | http://localhost:3000          |
 | Swagger Docs | http://localhost:3000/api/docs |
-| RabbitMQ UI | http://localhost:15672 |
+| RabbitMQ UI  | http://localhost:15672         |
 
 ## Default Login
 

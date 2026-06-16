@@ -3,6 +3,7 @@ const { publish } = require('../../../../shared/rabbitmq/client');
 const { Cache } = require('../../../../shared/redis/client');
 const EVENTS = require('../../../../shared/rabbitmq/events');
 const ApiResponse = require('../../../../shared/utils/response');
+const AuditLog = require('../../../../shared/utils/auditLog');
 const createLogger = require('../../../../shared/utils/logger');
 const crypto = require('crypto');
 
@@ -185,6 +186,16 @@ exports.processPayment = async (req, res) => {
       orderId: order_id,
       orderNumber: order.order_number,
       completedBy: userId,
+    });
+
+    await AuditLog.log({
+      userId,
+      action: 'PROCESS_PAYMENT',
+      module: 'payment',
+      entityType: 'payment',
+      entityId: result,
+      newValues: { orderId: order_id, amount: order.total_amount, method, transactionId },
+      ...AuditLog.extractRequestInfo(req),
     });
 
     // Deduct inventory

@@ -3,26 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Save, Trash2 } from 'lucide-react';
 import { inventoryAPI } from '../../api/inventory.api';
 import { productsAPI } from '../../api/products.api';
-import { suppliersAPI } from '../../api/suppliers.api';
 import toast from 'react-hot-toast';
 
 export default function InventoryImportPage() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ supplier_id: '', reference_no: '', notes: '' });
+  const [form, setForm] = useState({ reference_no: '', notes: '' });
   const [items, setItems] = useState([{ product_id: '', quantity: 1, unit_cost: 0 }]);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [pRes, sRes] = await Promise.all([
+        const [pRes] = await Promise.all([
           productsAPI.getAll({ limit: 200, status: 'active' }),
-          suppliersAPI.getAll({ limit: 100 }),
         ]);
         setProducts(pRes.data.data || []);
-        setSuppliers(sRes.data.data || []);
       } catch {
         toast.error('Không tải được dữ liệu hỗ trợ');
       }
@@ -44,7 +40,6 @@ export default function InventoryImportPage() {
     try {
       await inventoryAPI.importStock({
         ...form,
-        supplier_id: form.supplier_id ? Number(form.supplier_id) : null,
         items: validItems.map((i) => ({
           product_id: Number(i.product_id),
           quantity: Number(i.quantity),
@@ -70,14 +65,7 @@ export default function InventoryImportPage() {
         </div>
       </div>
 
-      <div className="card grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <label className="form-label">Nhà cung cấp</label>
-          <select value={form.supplier_id} onChange={(e) => setForm({ ...form, supplier_id: e.target.value })} className="form-input bg-white">
-            <option value="">Chọn nhà cung cấp (không bắt buộc)</option>
-            {suppliers.map((s) => <option key={s.id} value={s.id}>{s.company_name || s.name}</option>)}
-          </select>
-        </div>
+      <div className="card grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="form-label">Số phiếu / tham chiếu</label>
           <input value={form.reference_no} onChange={(e) => setForm({ ...form, reference_no: e.target.value })} className="form-input" placeholder="INV-2026-001" />

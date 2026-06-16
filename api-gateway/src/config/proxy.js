@@ -32,12 +32,8 @@ const routes = [
   { path: '/api/inventory', target: process.env.INVENTORY_SERVICE_URL },
   { path: '/api/orders', target: process.env.ORDER_SERVICE_URL },
   { path: '/api/payments', target: process.env.PAYMENT_SERVICE_URL },
-  { path: '/api/employees', target: process.env.EMPLOYEE_SERVICE_URL },
-  { path: '/api/suppliers', target: process.env.SUPPLIER_SERVICE_URL },
-  { path: '/api/promotions', target: process.env.PROMOTION_SERVICE_URL },
-  { path: '/api/notifications', target: process.env.NOTIFICATION_SERVICE_URL },
+  { path: '/api/employees', target: process.env.USER_SERVICE_URL },
   { path: '/api/analytics', target: process.env.ANALYTICS_SERVICE_URL },
-  { path: '/api/logs', target: process.env.LOGGING_SERVICE_URL },
 ];
 
 const registerProxies = (app) => {

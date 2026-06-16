@@ -3,8 +3,6 @@ import api from './axios.config';
 export const settingsAPI = {
   getGeneral: () => api.get('/settings/general'),
   updateGeneral: (data) => api.put('/settings/general', data),
-  getNotifications: () => api.get('/settings/notifications'),
-  updateNotifications: (data) => api.put('/settings/notifications', data),
   getRoles: () => api.get('/settings/roles'),
   updateRoles: (data) => api.put('/settings/roles', data),
   getUsers: () => api.get('/settings/users'),

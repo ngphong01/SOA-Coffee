@@ -10,15 +10,36 @@ const paymentRoutes = require('./routes/payment.routes');
 
 const logger = createLogger('Payment-Service');
 const app = express();
-app.use(helmet()); app.use(cors()); app.use(express.json());
+const PORT = process.env.PORT || 3007;
 
-app.get('/health', (req, res) => res.json({ status: 'healthy', service: 'payment-service' }));
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+
+app.get('/health', (req, res) => res.json({
+  status: 'healthy',
+  service: 'payment-service',
+  timestamp: new Date().toISOString(),
+}));
+
 app.use('/api/payments', paymentRoutes);
-app.use((err, req, res, next) => res.status(500).json({ success: false, message: err.message }));
+
+app.use((err, req, res, next) => {
+  logger.error('Unhandled error:', err);
+  res.status(err.statusCode || 500).json({ success: false, message: err.message });
+});
 
 const startServer = async () => {
-  createPool(); await testConnection();
-  await createRedisClient(); await connectRabbitMQ();
-  app.listen(process.env.PORT || 3007, () => logger.info(`🚀 Payment Service on port ${process.env.PORT || 3007}`));
+  try {
+    createPool();
+    await testConnection();
+    await createRedisClient();
+    await connectRabbitMQ();
+    app.listen(PORT, () => logger.info(`Payment Service running on port ${PORT}`));
+  } catch (error) {
+    logger.error('Failed to start Payment Service:', error);
+    process.exit(1);
+  }
 };
+
 startServer();

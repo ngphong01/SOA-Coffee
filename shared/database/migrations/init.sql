@@ -291,30 +291,7 @@ CREATE TABLE IF NOT EXISTS
   ) ENGINE = InnoDB;
 
 -- =====================================================
--- 7. SUPPLIERS
--- =====================================================
-CREATE TABLE IF NOT EXISTS
-  suppliers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    uuid CHAR(36) NOT NULL DEFAULT(UUID()),
-    company_name VARCHAR(200) NOT NULL,
-    contact_person VARCHAR(150),
-    email VARCHAR(255),
-    phone VARCHAR(20),
-    address TEXT,
-    tax_code VARCHAR(50),
-    payment_terms INT DEFAULT 30,
-    notes TEXT,
-    is_active TINYINT(1) DEFAULT 1,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_sup_uuid (uuid),
-    INDEX idx_sup_active (is_active),
-    INDEX idx_sup_name (company_name)
-  ) ENGINE = InnoDB;
-
--- =====================================================
--- 8. INVENTORY TRANSACTIONS
+-- 7. INVENTORY TRANSACTIONS
 -- =====================================================
 CREATE TABLE IF NOT EXISTS
   inventory_transactions (
@@ -322,7 +299,6 @@ CREATE TABLE IF NOT EXISTS
     uuid CHAR(36) NOT NULL DEFAULT(UUID()),
     product_id INT NOT NULL,
     user_id INT NOT NULL,
-    supplier_id INT NULL,
     type ENUM(
       'import',
       'export',
@@ -343,8 +319,7 @@ CREATE TABLE IF NOT EXISTS
     INDEX idx_invtx_created (created_at),
     INDEX idx_invtx_user (user_id),
     CONSTRAINT fk_invtx_product FOREIGN KEY (product_id) REFERENCES products (id),
-    CONSTRAINT fk_invtx_user FOREIGN KEY (user_id) REFERENCES users (id),
-    CONSTRAINT fk_invtx_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers (id)
+    CONSTRAINT fk_invtx_user FOREIGN KEY (user_id) REFERENCES users (id)
   ) ENGINE = InnoDB;
 
 -- =====================================================
@@ -495,112 +470,7 @@ CREATE TABLE IF NOT EXISTS
   ) ENGINE = InnoDB;
 
 -- =====================================================
--- 13. PURCHASE ORDERS
--- =====================================================
-CREATE TABLE IF NOT EXISTS
-  purchase_orders (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    uuid CHAR(36) NOT NULL DEFAULT(UUID()),
-    po_number VARCHAR(50) NOT NULL UNIQUE,
-    supplier_id INT NOT NULL,
-    created_by INT NOT NULL,
-    approved_by INT NULL,
-    status ENUM(
-      'draft',
-      'confirmed',
-      'shipped',
-      'received',
-      'paid',
-      'cancelled'
-    ) DEFAULT 'draft',
-    subtotal DECIMAL(15, 2) DEFAULT 0,
-    tax_amount DECIMAL(15, 2) DEFAULT 0,
-    total_amount DECIMAL(15, 2) DEFAULT 0,
-    notes TEXT,
-    expected_date DATE,
-    received_at TIMESTAMP NULL,
-    paid_at TIMESTAMP NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_po_uuid (uuid),
-    INDEX idx_po_supplier (supplier_id),
-    INDEX idx_po_status (status, created_at),
-    CONSTRAINT fk_po_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers (id),
-    CONSTRAINT fk_po_creator FOREIGN KEY (created_by) REFERENCES users (id),
-    CONSTRAINT fk_po_approver FOREIGN KEY (approved_by) REFERENCES users (id)
-  ) ENGINE = InnoDB;
-
-CREATE TABLE IF NOT EXISTS
-  purchase_order_items (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    po_id INT NOT NULL,
-    product_id INT NOT NULL,
-    quantity_ordered DECIMAL(12, 3) NOT NULL,
-    quantity_received DECIMAL(12, 3) DEFAULT 0,
-    unit_cost DECIMAL(12, 2) NOT NULL,
-    total_cost DECIMAL(15, 2) NOT NULL,
-    INDEX idx_poi_po (po_id),
-    INDEX idx_poi_product (product_id),
-    CONSTRAINT fk_poi_po FOREIGN KEY (po_id) REFERENCES purchase_orders (id) ON DELETE CASCADE,
-    CONSTRAINT fk_poi_product FOREIGN KEY (product_id) REFERENCES products (id),
-    CONSTRAINT chk_poi_qty CHECK (
-      quantity_ordered > 0
-      AND quantity_received >= 0
-      AND unit_cost >= 0
-    )
-  ) ENGINE = InnoDB;
-
--- =====================================================
--- 14. PROMOTIONS & COUPONS
--- =====================================================
-CREATE TABLE IF NOT EXISTS
-  promotions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    uuid CHAR(36) NOT NULL DEFAULT(UUID()),
-    name VARCHAR(200) NOT NULL,
-    description TEXT,
-    type ENUM('percentage', 'fixed_amount', 'buy_x_get_y') NOT NULL,
-    value DECIMAL(12, 2) NOT NULL,
-    min_order_amount DECIMAL(15, 2) DEFAULT 0,
-    max_discount_amount DECIMAL(15, 2),
-    buy_quantity INT,
-    get_quantity INT,
-    applies_to ENUM('all', 'category', 'product') DEFAULT 'all',
-    applicable_ids JSON,
-    usage_limit INT,
-    usage_count INT DEFAULT 0,
-    usage_per_user INT DEFAULT 1,
-    starts_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    ends_at TIMESTAMP NULL,
-    is_active TINYINT(1) DEFAULT 1,
-    created_by INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_promo_uuid (uuid),
-    INDEX idx_promo_active_date (is_active, starts_at, ends_at),
-    CONSTRAINT fk_promo_creator FOREIGN KEY (created_by) REFERENCES users (id),
-    CONSTRAINT chk_promo_value CHECK (value >= 0)
-  ) ENGINE = InnoDB;
-
-CREATE TABLE IF NOT EXISTS
-  coupons (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    uuid CHAR(36) NOT NULL DEFAULT(UUID()),
-    promotion_id INT NOT NULL,
-    code VARCHAR(50) NOT NULL UNIQUE,
-    usage_limit INT DEFAULT 1,
-    usage_count INT DEFAULT 0,
-    is_active TINYINT(1) DEFAULT 1,
-    expires_at TIMESTAMP NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_coup_uuid (uuid),
-    INDEX idx_coup_promo (promotion_id),
-    INDEX idx_coup_active (is_active, expires_at),
-    CONSTRAINT fk_coup_promo FOREIGN KEY (promotion_id) REFERENCES promotions (id) ON DELETE CASCADE
-  ) ENGINE = InnoDB;
-
--- =====================================================
--- 15. AUDIT LOGS
+-- 12. AUDIT LOGS
 -- =====================================================
 CREATE TABLE IF NOT EXISTS
   audit_logs (
@@ -989,140 +859,6 @@ VALUES
     'new'
   );
 
--- ---- SUPPLIERS ----
-INSERT IGNORE INTO
-  suppliers (
-    company_name,
-    contact_person,
-    email,
-    phone,
-    address,
-    tax_code,
-    payment_terms,
-    notes
-  )
-VALUES
-  (
-    'Cty TNHH Cà Phê Trung Nguyên',
-    'Nguyễn Văn An',
-    'an.nguyen@trungnguyen.com.vn',
-    '+842837225678',
-    '82-84 Bùi Thị Xuân, Q.1, TP.HCM',
-    '0301234567',
-    30,
-    'Nhà cung cấp cà phê chính'
-  ),
-  (
-    'Cty TNHH Sữa Vinamilk',
-    'Trần Thị Bích',
-    'bich.tran@vinamilk.com.vn',
-    '+842835416789',
-    '10 Tân Trào, Q.7, TP.HCM',
-    '0302345678',
-    15,
-    'Sữa tươi và sữa đặc'
-  ),
-  (
-    'CTCP Trà Việt Phúc Long',
-    'Lê Minh Hoàng',
-    'hoang.le@phuclong.com.vn',
-    '+842839202345',
-    '123 Nguyễn Thái Bình, Q.1, TP.HCM',
-    '0303456789',
-    30,
-    'Trà và nguyên liệu trà'
-  ),
-  (
-    'Cty TNHH Bột Mì Bình Đông',
-    'Phạm Quốc Tuấn',
-    'tuan.pham@binhdong.com.vn',
-    '+842839505678',
-    '45 Kim Biên, Q.5, TP.HCM',
-    '0304567890',
-    7,
-    'Bánh mì, bột bánh'
-  ),
-  (
-    'CTCP TP Sạch Organic',
-    'Hoàng Thị Mai',
-    'mai.hoang@organicfood.vn',
-    '+842837285901',
-    '23 Nguyễn Cư Trinh, Q.1, TP.HCM',
-    '0305678901',
-    15,
-    'Trái cây tươi hữu cơ'
-  ),
-  (
-    'Cty TNHH Đường Biên Hòa',
-    'Võ Văn Nam',
-    'nam.vo@bienhoa.com.vn',
-    '+842513867890',
-    'KCN Biên Hòa 1, Đồng Nai',
-    '0306789012',
-    30,
-    'Đường và nguyên liệu ngọt'
-  ),
-  (
-    'Cty TNHH Dừa Bến Tre',
-    'Đặng Thị Hoa',
-    'hoa.dang@duabentre.com.vn',
-    '+842753745678',
-    '156 Nguyễn Huệ, TP.Bến Tre',
-    '0307890123',
-    15,
-    'Dừa tươi, nước cốt dừa'
-  ),
-  (
-    'CTCP Thủy Sản Đà Lạt Farm',
-    'Bùi Quang Huy',
-    'huy.bui@dalatfarm.com.vn',
-    '+842633828901',
-    '12 Trần Phú, TP.Đà Lạt',
-    '0308901234',
-    7,
-    'Dâu tây, bơ Đà Lạt'
-  ),
-  (
-    'Cty TNHH Bao Bì Sài Gòn',
-    'Ngô Minh Đức',
-    'duc.ngo@baobisaigon.com.vn',
-    '+842839808901',
-    '78 Nguyễn Văn Cừ, Q.5, TP.HCM',
-    '0309012345',
-    30,
-    'Ly giấy, ống hút'
-  ),
-  (
-    'Cty TNHH NGK Suntory',
-    'Trịnh Văn Lâm',
-    'lam.trinh@suntory.com.vn',
-    '+842836178901',
-    'KCN Hiệp Phước, Nhà Bè',
-    '0300123456',
-    30,
-    'Nước ngọt, syrup'
-  ),
-  (
-    'CTCP Sữa Chua Vinamilk',
-    'Lý Thị Hồng',
-    'hong.ly@vinamilk.com.vn',
-    '+842835416790',
-    '10 Tân Trào, Q.7, TP.HCM',
-    '0302345679',
-    15,
-    'Sữa chua, kem tươi'
-  ),
-  (
-    'Cty TNHH Trân Châu Đài Loan',
-    'Đỗ Văn Khánh',
-    'khanh.do@tranchau.com.vn',
-    '+84908345678',
-    '34 Trần Bình Trọng, Q.5, TP.HCM',
-    '0309876543',
-    7,
-    'Trân châu đen, trắng'
-  );
-
 -- ---- USERS (password: "password123" — bcrypt hash) ----
 INSERT IGNORE INTO
   users (
@@ -1279,10 +1015,4 @@ SELECT
       COUNT(*)
     FROM
       inventory
-  ) AS inventory,
-  (
-    SELECT
-      COUNT(*)
-    FROM
-      suppliers
-  ) AS suppliers;
+  ) AS inventory;
