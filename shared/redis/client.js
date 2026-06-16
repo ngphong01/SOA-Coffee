@@ -68,6 +68,22 @@ const Cache = {
   async increment(key, amount = 1) {
     return await getClient().incrBy(key, amount);
   },
+  async incr(key) {
+    try {
+      return await getClient().incr(key);
+    } catch (error) {
+      logger.error('Cache INCR error:', error);
+      return 0;
+    }
+  },
+  async incrBy(key, amount) {
+    try {
+      return await getClient().incrBy(key, amount);
+    } catch (error) {
+      logger.error('Cache INCRBY error:', error);
+      return 0;
+    }
+  },
   async expire(key, seconds) {
     return await getClient().expire(key, seconds);
   },

@@ -5,7 +5,9 @@ const cors = require('cors');
 const { createRedisClient } = require('../../shared/redis/client');
 const createLogger = require('../../shared/utils/logger');
 const requestLogger = require('./middleware/logger.middleware');
+const rateLimit = require('./middleware/rateLimit.middleware');
 const authMiddleware = require('./middleware/auth.middleware');
+const { applyRbac } = require('./middleware/rbac.middleware');
 const errorHandler = require('./middleware/errorHandler.middleware');
 const setupSwagger = require('./config/swagger');
 const { registerProxies } = require('./config/proxy');
@@ -28,6 +30,9 @@ app.use((req, res, next) => {
 
 app.use(requestLogger);
 
+// Rate limiting: 200 req/phút cho /api
+app.use('/api', rateLimit({ windowMs: 60 * 1000, max: 200 }));
+
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -39,13 +44,16 @@ app.get('/health', (req, res) => {
 
 setupSwagger(app);
 
-// Chỉ kiểm tra auth cho các route /api (trừ public paths)
+// Auth + RBAC cho tất cả /api routes
 app.use((req, res, next) => {
   if (req.path.startsWith('/api')) {
     return authMiddleware(req, res, next);
   }
   next();
 });
+
+// RBAC enforcement (chạy sau auth)
+applyRbac(app);
 
 registerProxies(app);
 

@@ -1,6 +1,10 @@
 const { query, queryOne, transaction } = require('../../../../shared/database/mysql');
 const { Cache } = require('../../../../shared/redis/client');
 const ApiResponse = require('../../../../shared/utils/response');
+const AuditLog = require('../../../../shared/utils/auditLog');
+const createLogger = require('../../../../shared/utils/logger');
+
+const logger = createLogger('Product-Controller');
 
 exports.getAll = async (req, res) => {
   const { page = 1, limit = 20, search = '', category_id, status } = req.query;
@@ -84,6 +88,15 @@ exports.create = async (req, res) => {
   });
 
   await Cache.delPattern('products:*');
+  await AuditLog.log({
+    userId: req.headers['x-user-id'] || null,
+    action: 'CREATE_PRODUCT',
+    module: 'product',
+    entityType: 'product',
+    entityId: product.id,
+    newValues: { name, sku, price, category_id },
+    ...AuditLog.extractRequestInfo(req),
+  });
   return ApiResponse.created(res, product, 'Product created');
 };
 
@@ -113,6 +126,16 @@ exports.update = async (req, res) => {
   await query(`UPDATE products SET ${updates.join(', ')} WHERE id = ?`, params);
   const product = await queryOne('SELECT * FROM products WHERE id = ?', [id]);
   await Cache.delPattern('products:*');
+  await AuditLog.log({
+    userId: req.headers['x-user-id'] || null,
+    action: 'UPDATE_PRODUCT',
+    module: 'product',
+    entityType: 'product',
+    entityId: id,
+    oldValues: existing,
+    newValues: product,
+    ...AuditLog.extractRequestInfo(req),
+  });
   return ApiResponse.success(res, product, 'Product updated');
 };
 
@@ -122,5 +145,13 @@ exports.remove = async (req, res) => {
   if (!existing) return ApiResponse.notFound(res, 'Product not found');
   await query('UPDATE products SET deleted_at = NOW() WHERE id = ?', [id]);
   await Cache.delPattern('products:*');
+  await AuditLog.log({
+    userId: req.headers['x-user-id'] || null,
+    action: 'DELETE_PRODUCT',
+    module: 'product',
+    entityType: 'product',
+    entityId: id,
+    ...AuditLog.extractRequestInfo(req),
+  });
   return ApiResponse.success(res, null, 'Product deleted');
 };

@@ -2,29 +2,32 @@ import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import {
   LayoutDashboard, Package, FolderTree, Warehouse, ShoppingCart,
-  CreditCard, Users, UserCog, Truck, Tag, BarChart3, Settings,
+  CreditCard, Users, UserCog, BarChart3, Settings,
   Coffee, LogOut, Bell, Search, Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
-const nav = [
-  { to: '/', icon: LayoutDashboard, label: 'Tổng quan', end: true },
-  { to: '/products', icon: Package, label: 'Sản phẩm' },
-  { to: '/categories', icon: FolderTree, label: 'Danh mục' },
-  { to: '/inventory', icon: Warehouse, label: 'Kho hàng' },
-  { to: '/orders', icon: ShoppingCart, label: 'Đơn hàng' },
-  { to: '/payments', icon: CreditCard, label: 'Thanh toán' },
-  { to: '/customers', icon: Users, label: 'Khách hàng' },
-  { to: '/employees', icon: UserCog, label: 'Nhân viên' },
-  { to: '/suppliers', icon: Truck, label: 'Nhà cung cấp' },
-  { to: '/promotions', icon: Tag, label: 'Khuyến mãi' },
-  { to: '/analytics/revenue', icon: BarChart3, label: 'Doanh thu' },
-  { to: '/analytics/sales', icon: Sparkles, label: 'Bán hàng' },
-  { to: '/settings', icon: Settings, label: 'Cài đặt' },
+const ROLE_LABELS = { 1: 'Super Admin', 2: 'Admin', 3: 'Quản lý', 4: 'Thu ngân', 5: 'Pha chế', 6: 'Xem' };
+
+// Menu items with role restrictions (match DB: 1=super_admin, 2=admin, 3=manager, 4=cashier, 5=barista, 6=viewer)
+const allNav = [
+  { to: '/', icon: LayoutDashboard, label: 'Tổng quan', end: true, roles: [1, 2, 3, 4, 5, 6] },
+  { to: '/products', icon: Package, label: 'Sản phẩm', roles: [1, 2, 3] },
+  { to: '/categories', icon: FolderTree, label: 'Danh mục', roles: [1, 2, 3] },
+  { to: '/inventory', icon: Warehouse, label: 'Kho hàng', roles: [1, 2, 3] },
+  { to: '/orders', icon: ShoppingCart, label: 'Đơn hàng', roles: [1, 2, 3, 4, 5] },
+  { to: '/payments', icon: CreditCard, label: 'Thanh toán', roles: [1, 2, 3, 4] },
+  { to: '/customers', icon: Users, label: 'Khách hàng', roles: [1, 2, 3, 4] },
+  { to: '/employees', icon: UserCog, label: 'Nhân viên', roles: [1, 2] },
+  { to: '/analytics/revenue', icon: BarChart3, label: 'Doanh thu', roles: [1, 2, 3] },
+  { to: '/analytics/sales', icon: Sparkles, label: 'Bán hàng', roles: [1, 2, 3] },
+  { to: '/settings', icon: Settings, label: 'Cài đặt', roles: [1, 2] },
 ];
 
 export default function DashboardLayout() {
   const { user, handleLogout } = useAuth();
+
+  const nav = allNav.filter((item) => item.roles.includes(user?.role_id));
 
   return (
     <div className="min-h-screen bg-coffee-50 flex">
@@ -86,7 +89,7 @@ export default function DashboardLayout() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">{user?.full_name || user?.email}</p>
-                <p className="text-xs text-coffee-400 truncate">Quản lý</p>
+                <p className="text-xs text-coffee-400 truncate">{ROLE_LABELS[user?.role_id] || 'Nhân viên'}</p>
               </div>
               <button onClick={handleLogout} className="p-2 rounded-lg hover:bg-white/10 text-coffee-400 hover:text-red-300 transition-all" title="Đăng xuất">
                 <LogOut size={16} />

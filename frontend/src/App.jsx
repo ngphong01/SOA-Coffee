@@ -26,11 +26,6 @@ import EmployeeListPage from './pages/employees/EmployeeListPage';
 import EmployeeDetailPage from './pages/employees/EmployeeDetailPage';
 import CustomerListPage from './pages/customers/CustomerListPage';
 import CustomerDetailPage from './pages/customers/CustomerDetailPage';
-import SupplierListPage from './pages/suppliers/SupplierListPage';
-import SupplierDetailPage from './pages/suppliers/SupplierDetailPage';
-import PurchaseOrderListPage from './pages/suppliers/PurchaseOrderListPage';
-import PromotionListPage from './pages/promotions/PromotionListPage';
-import CouponListPage from './pages/promotions/CouponListPage';
 import SalesAnalyticsPage from './pages/analytics/SalesAnalyticsPage';
 import RevenueAnalyticsPage from './pages/analytics/RevenueAnalyticsPage';
 import SettingsPage from './pages/settings/SettingsPage';
@@ -68,11 +63,6 @@ export default function App() {
         <Route path="/payments" element={<PaymentListPage />} />
         <Route path="/employees" element={<EmployeeListPage />} />
         <Route path="/employees/:id" element={<EmployeeDetailPage />} />
-        <Route path="/suppliers" element={<SupplierListPage />} />
-        <Route path="/suppliers/purchase-orders" element={<PurchaseOrderListPage />} />
-        <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
-        <Route path="/promotions" element={<PromotionListPage />} />
-        <Route path="/promotions/coupons" element={<CouponListPage />} />
         <Route path="/customers" element={<CustomerListPage />} />
         <Route path="/customers/:id" element={<CustomerDetailPage />} />
         <Route path="/analytics/sales" element={<SalesAnalyticsPage />} />

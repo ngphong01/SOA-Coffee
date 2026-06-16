@@ -64,51 +64,12 @@ services:
     environment:
       - NODE_ENV=development
 
-  employee-service:
-    volumes:
-      - ./shared:/app/shared
-      - ./services/employee-service/src:/app/services/employee-service/src
-    command: sh -c "cd /app && node --watch services/employee-service/src/index.js"
-    environment:
-      - NODE_ENV=development
-
-  supplier-service:
-    volumes:
-      - ./shared:/app/shared
-      - ./services/supplier-service/src:/app/services/supplier-service/src
-    command: sh -c "cd /app && node --watch services/supplier-service/src/index.js"
-    environment:
-      - NODE_ENV=development
-
-  promotion-service:
-    volumes:
-      - ./shared:/app/shared
-      - ./services/promotion-service/src:/app/services/promotion-service/src
-    command: sh -c "cd /app && node --watch services/promotion-service/src/index.js"
-    environment:
-      - NODE_ENV=development
-
-  notification-service:
-    volumes:
-      - ./shared:/app/shared
-      - ./services/notification-service/src:/app/services/notification-service/src
-    command: sh -c "cd /app && node --watch services/notification-service/src/index.js"
-    environment:
-      - NODE_ENV=development
 
   analytics-service:
     volumes:
       - ./shared:/app/shared
       - ./services/analytics-service/src:/app/services/analytics-service/src
     command: sh -c "cd /app && node --watch services/analytics-service/src/index.js"
-    environment:
-      - NODE_ENV=development
-
-  logging-service:
-    volumes:
-      - ./shared:/app/shared
-      - ./services/logging-service/src:/app/services/logging-service/src
-    command: sh -c "cd /app && node --watch services/logging-service/src/index.js"
     environment:
       - NODE_ENV=development
 

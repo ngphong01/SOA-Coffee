@@ -2,6 +2,7 @@ const { query, queryOne, transaction } = require('../../../../shared/database/my
 const { publish } = require('../../../../shared/rabbitmq/client');
 const EVENTS = require('../../../../shared/rabbitmq/events');
 const ApiResponse = require('../../../../shared/utils/response');
+const AuditLog = require('../../../../shared/utils/auditLog');
 
 const generateOrderNumber = () => `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
@@ -83,48 +84,57 @@ exports.create = async (req, res) => {
   if (!items?.length) return ApiResponse.badRequest(res, 'Order items required');
 
   try {
-  const order = await transaction(async (conn) => {
-    let subtotal = 0;
-    const lineItems = [];
+    const order = await transaction(async (conn) => {
+      let subtotal = 0;
+      const lineItems = [];
 
-    for (const item of items) {
-      const [productRows] = await conn.execute(
-        'SELECT id, name, sku, price FROM products WHERE id = ? AND deleted_at IS NULL AND is_active = 1',
-        [item.product_id]
+      for (const item of items) {
+        const [productRows] = await conn.execute(
+          'SELECT id, name, sku, price FROM products WHERE id = ? AND deleted_at IS NULL AND is_active = 1',
+          [item.product_id]
+        );
+        const product = productRows[0];
+        if (!product) throw Object.assign(new Error(`Product ${item.product_id} not found`), { statusCode: 400 });
+
+        const qty = parseFloat(item.quantity) || 1;
+        const unitPrice = parseFloat(product.price);
+        const totalPrice = unitPrice * qty;
+        subtotal += totalPrice;
+        lineItems.push({ product, qty, unitPrice, totalPrice, notes: item.notes });
+      }
+
+      const orderNumber = generateOrderNumber();
+      const [orderResult] = await conn.execute(
+        `INSERT INTO orders
+          (order_number, customer_id, cashier_id, type, status, table_number, subtotal, total_amount, coupon_code, notes)
+         VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)`,
+        [orderNumber, customer_id, cashier_id, type, table_number || null, subtotal, subtotal, coupon_code || null, notes || null]
       );
-      const product = productRows[0];
-      if (!product) throw Object.assign(new Error(`Product ${item.product_id} not found`), { statusCode: 400 });
+      const orderId = orderResult.insertId;
 
-      const qty = parseFloat(item.quantity) || 1;
-      const unitPrice = parseFloat(product.price);
-      const totalPrice = unitPrice * qty;
-      subtotal += totalPrice;
-      lineItems.push({ product, qty, unitPrice, totalPrice, notes: item.notes });
-    }
+      for (const line of lineItems) {
+        await conn.execute(
+          `INSERT INTO order_items
+            (order_id, product_id, product_name, product_sku, quantity, unit_price, total_price, notes)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [orderId, line.product.id, line.product.name, line.product.sku, line.qty, line.unitPrice, line.totalPrice, line.notes || null]
+        );
+      }
 
-    const orderNumber = generateOrderNumber();
-    const [orderResult] = await conn.execute(
-      `INSERT INTO orders
-        (order_number, customer_id, cashier_id, type, status, table_number, subtotal, total_amount, coupon_code, notes)
-       VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)`,
-      [orderNumber, customer_id, cashier_id, type, table_number || null, subtotal, subtotal, coupon_code || null, notes || null]
-    );
-    const orderId = orderResult.insertId;
+      const [rows] = await conn.execute('SELECT * FROM orders WHERE id = ?', [orderId]);
+      return rows[0];
+    });
 
-    for (const line of lineItems) {
-      await conn.execute(
-        `INSERT INTO order_items
-          (order_id, product_id, product_name, product_sku, quantity, unit_price, total_price, notes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [orderId, line.product.id, line.product.name, line.product.sku, line.qty, line.unitPrice, line.totalPrice, line.notes || null]
-      );
-    }
-
-    const [rows] = await conn.execute('SELECT * FROM orders WHERE id = ?', [orderId]);
-    return rows[0];
+    await publish(EVENTS.ORDER_CREATED, { orderId: order.id, orderNumber: order.order_number, cashierId: cashier_id });
+    await AuditLog.log({
+      userId: cashier_id || req.headers['x-user-id'] || null,
+      action: 'CREATE_ORDER',
+      module: 'order',
+      entityType: 'order',
+      entityId: order.id,
+      newValues: { orderNumber: order.order_number, totalAmount: order.total_amount, itemCount: items.length },
+    ...AuditLog.extractRequestInfo(req),
   });
-
-  await publish(EVENTS.ORDER_CREATED, { orderId: order.id, orderNumber: order.order_number, cashierId: cashier_id });
   const full = await exports.getOneData(order.id);
   return ApiResponse.created(res, full, 'Order created');
   } catch (err) {
@@ -185,6 +195,17 @@ exports.updateStatus = async (req, res) => {
   if (status === 'completed') {
     await publish(EVENTS.ORDER_COMPLETED, { orderId: id, orderNumber: order.order_number });
   }
+
+  await AuditLog.log({
+    userId: req.headers['x-user-id'] || null,
+    action: `UPDATE_ORDER_STATUS`,
+    module: 'order',
+    entityType: 'order',
+    entityId: id,
+    oldValues: { status: order.status },
+    newValues: { status },
+    ...AuditLog.extractRequestInfo(req),
+  });
 
   return ApiResponse.success(res, updated, `Order ${status}`);
 };

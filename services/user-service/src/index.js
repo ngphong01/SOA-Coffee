@@ -4,11 +4,11 @@ const helmet = require('helmet');
 const cors = require('cors');
 const { createPool, testConnection } = require('../../../shared/database/mysql');
 const { createRedisClient } = require('../../../shared/redis/client');
-const { connect: connectRabbitMQ } = require('../../../shared/rabbitmq/client');
 const createLogger = require('../../../shared/utils/logger');
 const userRoutes = require('./routes/user.routes');
 const settingsRoutes = require('./routes/settings.routes');
 const uploadRoutes = require('./routes/upload.routes');
+const employeeRoutes = require('./routes/employee.routes');
 
 const logger = createLogger('User-Service');
 const app = express();
@@ -26,6 +26,7 @@ app.get('/health', (req, res) => res.json({
 
 app.use('/api/users', userRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/employees', employeeRoutes);
 app.use('/api', uploadRoutes);
 
 app.use((err, req, res, next) => {
@@ -38,7 +39,6 @@ const startServer = async () => {
     createPool();
     await testConnection();
     await createRedisClient();
-    await connectRabbitMQ();
     app.listen(PORT, () => logger.info(`User Service running on port ${PORT}`));
   } catch (error) {
     logger.error('Failed to start User Service:', error);
