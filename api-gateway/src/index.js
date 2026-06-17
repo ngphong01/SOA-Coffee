@@ -11,6 +11,9 @@ const { applyRbac } = require('./middleware/rbac.middleware');
 const errorHandler = require('./middleware/errorHandler.middleware');
 const setupSwagger = require('./config/swagger');
 const { registerProxies } = require('./config/proxy');
+const correlationId = require('./middleware/correlationId.middleware');
+const serviceDiscovery = require('../../shared/utils/serviceDiscovery');
+const { metricsMiddleware, metricsRoute } = require('../../shared/middleware/metrics');
 
 const logger = createLogger('API-Gateway');
 const app = express();
@@ -18,6 +21,8 @@ const PORT = process.env.PORT || 3000;
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
+app.use(correlationId);
+app.use(metricsMiddleware('api-gateway'));
 
 // Chỉ parse JSON cho các route KHÔNG phải proxy.
 // Các route /api/... sẽ được proxy chuyển tiếp nguyên vẹn body sang microservice.
@@ -30,19 +35,29 @@ app.use((req, res, next) => {
 
 app.use(requestLogger);
 
-// Rate limiting: 200 req/phút cho /api
-app.use('/api', rateLimit({ windowMs: 60 * 1000, max: 200 }));
+// Rate limiting: 200 req/phút cho tất cả /api và /api/v1
+const isApiPath = (path) => path.startsWith('/api/v1') || path.startsWith('/api/');
+app.use((req, res, next) => {
+  if (isApiPath(req.path)) {
+    return rateLimit({ windowMs: 60 * 1000, max: 200 })(req, res, next);
+  }
+  next();
+});
 
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
     service: 'api-gateway',
+    version: '1.0.0',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   });
 });
 
 setupSwagger(app);
+
+// Prometheus metrics endpoint
+app.get('/metrics', metricsRoute);
 
 // Auth + RBAC cho tất cả /api routes
 app.use((req, res, next) => {

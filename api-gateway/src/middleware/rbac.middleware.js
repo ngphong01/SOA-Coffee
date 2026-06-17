@@ -47,26 +47,38 @@ const requireRole = (...allowed) => {
 // Use '*' as method to restrict ALL methods.
 const ROLE_RULES = [
   // ── Products ──
-  { path: '/api/products', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2, 3] }, // super_admin, admin, manager
+  { path: '/api/v1/products', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2, 3] },
+  { path: '/api/products', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2, 3] },
   // ── Categories ──
+  { path: '/api/v1/categories', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2, 3] },
   { path: '/api/categories', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2, 3] },
   // ── Inventory ──
+  { path: '/api/v1/inventory', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2, 3] },
   { path: '/api/inventory', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2, 3] },
   // ── Orders: cashier+ can create, manager+ can update/delete ──
+  { path: '/api/v1/orders', methods: ['POST'], roles: [1, 2, 3, 4] },
+  { path: '/api/v1/orders', methods: ['PUT', 'DELETE'], roles: [1, 2, 3] },
   { path: '/api/orders', methods: ['POST'], roles: [1, 2, 3, 4] },
   { path: '/api/orders', methods: ['PUT', 'DELETE'], roles: [1, 2, 3] },
   // ── Payments ──
+  { path: '/api/v1/payments', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2, 3, 4] },
   { path: '/api/payments', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2, 3, 4] },
   // ── Customers ──
+  { path: '/api/v1/users', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2, 3, 4] },
   { path: '/api/users', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2, 3, 4] },
   // ── Employees: super_admin & admin only ──
+  { path: '/api/v1/employees', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2] },
   { path: '/api/employees', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2] },
   // ── Settings ──
+  { path: '/api/v1/settings', methods: '*', roles: [1, 2] },
+  { path: '/api/v1/settings', methods: ['GET'], roles: [1, 2, 3] },
   { path: '/api/settings', methods: '*', roles: [1, 2] },
   { path: '/api/settings', methods: ['GET'], roles: [1, 2, 3] },
   // ── Analytics ──
+  { path: '/api/v1/analytics', methods: '*', roles: [1, 2, 3] },
   { path: '/api/analytics', methods: '*', roles: [1, 2, 3] },
   // ── Users management ──
+  { path: '/api/v1/users', methods: ['GET'], roles: [1, 2] },
   { path: '/api/users', methods: ['GET'], roles: [1, 2] },
 ];
 

@@ -10,6 +10,10 @@ volumes:
   redis_data:
   rabbitmq_data:
   uploads_data:
+  elasticsearch_data:
+  jaeger_data:
+  prometheus_data:
+  grafana_data:
 
 services:
   mysql:
@@ -25,7 +29,15 @@ services:
       - "3308:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./shared/database/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./services/auth-service/migrations/init.sql:/docker-entrypoint-initdb.d/01-auth.sql
+      - ./services/user-service/migrations/init.sql:/docker-entrypoint-initdb.d/02-user.sql
+      - ./services/user-service/migrations/02-settings.sql:/docker-entrypoint-initdb.d/02b-settings.sql
+      - ./services/product-service/migrations/init.sql:/docker-entrypoint-initdb.d/03-product.sql
+      - ./services/category-service/migrations/init.sql:/docker-entrypoint-initdb.d/04-category.sql
+      - ./services/inventory-service/migrations/init.sql:/docker-entrypoint-initdb.d/05-inventory.sql
+      - ./services/order-service/migrations/init.sql:/docker-entrypoint-initdb.d/06-order.sql
+      - ./services/payment-service/migrations/init.sql:/docker-entrypoint-initdb.d/07-payment.sql
+      - ./services/analytics-service/migrations/init.sql:/docker-entrypoint-initdb.d/08-analytics.sql
     networks:
       - coffee-network
     healthcheck:
@@ -38,6 +50,7 @@ services:
       --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
+      --skip-character-set-client-handshake
       --innodb-buffer-pool-size=256M
       --max-connections=200
 
@@ -130,7 +143,7 @@ services:
       - PORT=3001
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_NAME=${MYSQL_DATABASE}
+      - DB_NAME=auth_db
       - DB_USER=${MYSQL_USER}
       - DB_PASSWORD=${MYSQL_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -163,7 +176,7 @@ services:
       - PORT=3002
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_NAME=${MYSQL_DATABASE}
+      - DB_NAME=user_db
       - DB_USER=${MYSQL_USER}
       - DB_PASSWORD=${MYSQL_PASSWORD}
       - REDIS_HOST=redis
@@ -188,7 +201,7 @@ services:
       - PORT=3003
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_NAME=${MYSQL_DATABASE}
+      - DB_NAME=product_db
       - DB_USER=${MYSQL_USER}
       - DB_PASSWORD=${MYSQL_PASSWORD}
       - REDIS_HOST=redis
@@ -215,7 +228,7 @@ services:
       - PORT=3004
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_NAME=${MYSQL_DATABASE}
+      - DB_NAME=category_db
       - DB_USER=${MYSQL_USER}
       - DB_PASSWORD=${MYSQL_PASSWORD}
       - REDIS_HOST=redis
@@ -240,7 +253,7 @@ services:
       - PORT=3005
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_NAME=${MYSQL_DATABASE}
+      - DB_NAME=inventory_db
       - DB_USER=${MYSQL_USER}
       - DB_PASSWORD=${MYSQL_PASSWORD}
       - REDIS_HOST=redis
@@ -268,7 +281,7 @@ services:
       - PORT=3006
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_NAME=${MYSQL_DATABASE}
+      - DB_NAME=order_db
       - DB_USER=${MYSQL_USER}
       - DB_PASSWORD=${MYSQL_PASSWORD}
       - REDIS_HOST=redis
@@ -296,7 +309,7 @@ services:
       - PORT=3007
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_NAME=${MYSQL_DATABASE}
+      - DB_NAME=payment_db
       - DB_USER=${MYSQL_USER}
       - DB_PASSWORD=${MYSQL_PASSWORD}
       - REDIS_HOST=redis
@@ -324,7 +337,7 @@ services:
       - PORT=3012
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_NAME=${MYSQL_DATABASE}
+      - DB_NAME=analytics_db
       - DB_USER=${MYSQL_USER}
       - DB_PASSWORD=${MYSQL_PASSWORD}
       - REDIS_HOST=redis
@@ -340,6 +353,124 @@ services:
         condition: service_healthy
     networks:
       - coffee-network
+
+  # =====================================================
+  # MONITORING & OBSERVABILITY STACK
+  # =====================================================
+
+  # ── Elasticsearch (Centralized Logging) ──
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: coffee_elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - coffee-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  # ── Kibana (Log Visualization) ──
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: coffee_kibana
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - coffee-network
+
+  # ── Jaeger (Distributed Tracing) ──
+  jaeger:
+    image: jaegertracing/all-in-one:1.53
+    container_name: coffee_jaeger
+    restart: unless-stopped
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - MEMORY_MAX_TRACES=10000
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"   # UI
+      - "14268:14268"   # HTTP collector
+      - "14250:14250"
+      - "9411:9411"
+    volumes:
+      - jaeger_data:/var/lib/jaeger
+    networks:
+      - coffee-network
+
+  # ── Prometheus (Metrics) ──
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: coffee_prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - coffee-network
+
+  # ── Grafana (Dashboards) ──
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: coffee_grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./config/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    depends_on:
+      - prometheus
+    networks:
+      - coffee-network
+
+  # ── Consul (Service Discovery) ──
+  consul:
+    image: hashicorp/consul:1.17
+    container_name: coffee_consul
+    restart: unless-stopped
+    command: agent -dev -client=0.0.0.0 -ui
+    ports:
+      - "8500:8500"   # UI + API
+      - "8600:8600/udp" # DNS
+    networks:
+      - coffee-network
+    healthcheck:
+      test: ["CMD", "consul", "members"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
 
   frontend:
     build:

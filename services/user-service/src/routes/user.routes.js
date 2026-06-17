@@ -26,6 +26,7 @@ const profileRules = [
 ];
 
 router.get('/customers', asyncHandler(controller.getAllCustomers));
+router.get('/customers/stats', asyncHandler(controller.getCustomerStats));
 router.get('/customers/:id', asyncHandler(controller.getCustomer));
 router.post('/customers', createCustomerRules, validate, asyncHandler(controller.createCustomer));
 router.put('/customers/:id', updateCustomerRules, validate, asyncHandler(controller.updateCustomer));

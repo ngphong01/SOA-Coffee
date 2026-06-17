@@ -29,7 +29,7 @@ exports.getAll = async (req, res) => {
     let sql = `
       SELECT c.*,
              p.name AS parent_name,
-             ${include_count ? '(SELECT COUNT(*) FROM products pr WHERE pr.category_id = c.id AND pr.deleted_at IS NULL) AS product_count,' : ''}
+             ${include_count ? '(SELECT COUNT(*) FROM product_db.products pr WHERE pr.category_id = c.id AND pr.deleted_at IS NULL) AS product_count,' : ''}
              (SELECT COUNT(*) FROM categories sc WHERE sc.parent_id = c.id) AS subcategory_count
       FROM categories c
       LEFT JOIN categories p ON c.parent_id = p.id
@@ -71,7 +71,7 @@ exports.getOne = async (req, res) => {
     const { id } = req.params;
     const category = await queryOne(
       `SELECT c.*, p.name AS parent_name,
-              (SELECT COUNT(*) FROM products pr WHERE pr.category_id = c.id AND pr.deleted_at IS NULL) AS product_count
+              (SELECT COUNT(*) FROM product_db.products pr WHERE pr.category_id = c.id AND pr.deleted_at IS NULL) AS product_count
        FROM categories c
        LEFT JOIN categories p ON c.parent_id = p.id
        WHERE c.id = ? OR c.slug = ?`,
@@ -145,7 +145,7 @@ exports.remove = async (req, res) => {
   try {
     const { id } = req.params;
     const productCount = await queryOne(
-      'SELECT COUNT(*) AS count FROM products WHERE category_id = ? AND deleted_at IS NULL',
+      'SELECT COUNT(*) AS count FROM product_db.products WHERE category_id = ? AND deleted_at IS NULL',
       [id]
     );
     if (productCount.count > 0) {

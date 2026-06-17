@@ -117,7 +117,7 @@ exports.updateRoles = async (req, res) => {
 exports.getUsers = async (req, res) => {
   try {
     const users = await query(
-      'SELECT id, email, full_name, phone, role_id, is_active, created_at FROM users WHERE deleted_at IS NULL ORDER BY created_at DESC'
+      'SELECT id, email, full_name, phone, role_id, is_active, created_at FROM auth_db.users WHERE deleted_at IS NULL ORDER BY created_at DESC'
     );
     const mapped = users.map((u) => ({
       ...u,

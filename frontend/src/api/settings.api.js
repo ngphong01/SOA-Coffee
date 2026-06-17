@@ -9,4 +9,5 @@ export const settingsAPI = {
   updateUser: (id, data) => api.put(`/settings/users/${id}`, data),
   updateProfile: (data) => api.put('/settings/profile', data),
   uploadAvatar: (base64Image) => api.post('/upload/avatar', { image: base64Image }),
+  uploadFile: (formData) => api.post('/upload/file', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };

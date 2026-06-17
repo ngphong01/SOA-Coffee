@@ -9,6 +9,8 @@ const formatCurrency = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency'
 export default function DashboardPage() {
   const dispatch = useDispatch();
   const { dashboard, loading } = useSelector((s) => s.analytics);
+  const { user } = useSelector((s) => s.auth);
+  const userName = user?.full_name || 'Admin';
 
   useEffect(() => {
     dispatch(fetchDashboard());
@@ -70,7 +72,7 @@ export default function DashboardPage() {
             </span>
             Tổng quan
           </h1>
-          <p className="page-subtitle mt-1">Chào buổi sáng! Đây là tổng quan hoạt động hôm nay ☀️</p>
+          <p className="page-subtitle mt-1">Chào mừng {userName} trở lại! ☕</p>
         </div>
         <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-coffee-100 text-sm text-coffee-500 shadow-card">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -111,7 +113,7 @@ export default function DashboardPage() {
       {/* Quick actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="card bg-gradient-to-br from-coffee-700 to-coffee-800 text-white border-0 shadow-glow lg:col-span-2">
-          <h3 className="text-lg font-bold mb-2">☕ Chào mừng đến với Quán Cà Phê</h3>
+          <h3 className="text-lg font-bold mb-2">☕ Chào mừng {userName} đến với Quán Cà Phê</h3>
           <p className="text-coffee-200 text-sm mb-4">
             Quản lý đơn hàng, tồn kho, nhân viên và khách hàng — tất cả trong một hệ thống duy nhất.
           </p>

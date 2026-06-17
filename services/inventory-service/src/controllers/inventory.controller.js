@@ -56,9 +56,9 @@ exports.getAll = async (req, res) => {
             WHEN i.quantity_available <= i.min_stock_level THEN 'low_stock'
             ELSE 'in_stock'
           END AS stock_status
-         FROM products p
-         JOIN inventory i ON p.id = i.product_id
-         LEFT JOIN categories c ON p.category_id = c.id
+         FROM inventory i
+         JOIN product_db.products p ON p.id = i.product_id
+         LEFT JOIN category_db.categories c ON p.category_id = c.id
          ${where}
          ORDER BY ${sortField} ${order === 'DESC' ? 'DESC' : 'ASC'}
          LIMIT ? OFFSET ?`,
@@ -66,8 +66,8 @@ exports.getAll = async (req, res) => {
       ),
       query(
         `SELECT COUNT(*) AS total
-         FROM products p
-         JOIN inventory i ON p.id = i.product_id
+         FROM inventory i
+         JOIN product_db.products p ON p.id = i.product_id
          ${where}`,
         params
       ),
@@ -106,9 +106,9 @@ exports.getOne = async (req, res) => {
         i.location,
         i.last_restock_at,
         i.updated_at AS inventory_updated_at
-       FROM products p
-       JOIN inventory i ON p.id = i.product_id
-       LEFT JOIN categories c ON p.category_id = c.id
+       FROM inventory i
+       JOIN product_db.products p ON p.id = i.product_id
+       LEFT JOIN category_db.categories c ON p.category_id = c.id
        WHERE p.id = ? AND p.deleted_at IS NULL`,
       [productId]
     );
@@ -118,7 +118,7 @@ exports.getOne = async (req, res) => {
     const transactions = await query(
       `SELECT it.*, u.full_name AS created_by_name
        FROM inventory_transactions it
-       JOIN users u ON it.user_id = u.id
+       JOIN auth_db.users u ON it.user_id = u.id
        WHERE it.product_id = ?
        ORDER BY it.created_at DESC
        LIMIT 20`,
@@ -348,8 +348,8 @@ exports.getTransactions = async (req, res) => {
           p.name AS product_name, p.sku AS product_sku, p.thumbnail_url,
           u.full_name AS created_by_name
          FROM inventory_transactions it
-         JOIN products p ON it.product_id = p.id
-         JOIN users u ON it.user_id = u.id
+         JOIN product_db.products p ON it.product_id = p.id
+         JOIN auth_db.users u ON it.user_id = u.id
          ${where}
          ORDER BY it.created_at DESC
          LIMIT ? OFFSET ?`,
@@ -384,8 +384,8 @@ exports.getLowStockAlerts = async (req, res) => {
           ELSE 'medium'
         END AS severity
        FROM inventory i
-       JOIN products p ON i.product_id = p.id
-       LEFT JOIN categories c ON p.category_id = c.id
+       JOIN product_db.products p ON i.product_id = p.id
+       LEFT JOIN category_db.categories c ON p.category_id = c.id
        WHERE i.quantity_available <= i.min_stock_level
          AND p.is_active = 1
          AND p.deleted_at IS NULL
@@ -413,7 +413,7 @@ exports.getStats = async (req, res) => {
         SUM(CASE WHEN i.quantity_available <= i.min_stock_level AND i.quantity_available > 0 THEN 1 ELSE 0 END) AS low_stock_count,
         SUM(CASE WHEN i.quantity_available > i.min_stock_level THEN 1 ELSE 0 END) AS in_stock_count
        FROM inventory i
-       JOIN products p ON i.product_id = p.id
+       JOIN product_db.products p ON i.product_id = p.id
        WHERE p.deleted_at IS NULL AND p.is_active = 1`
     );
 
@@ -430,7 +430,7 @@ async function checkAndPublishLowStockAlerts(productIds) {
     for (const productId of productIds) {
       const item = await queryOne(
         `SELECT p.name, p.sku, i.quantity_available, i.min_stock_level, i.reorder_point
-         FROM inventory i JOIN products p ON i.product_id = p.id
+         FROM inventory i JOIN product_db.products p ON i.product_id = p.id
          WHERE i.product_id = ?`,
         [productId]
       );

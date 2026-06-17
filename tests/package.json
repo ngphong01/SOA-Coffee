@@ -1,0 +1,14 @@
+{
+  "name": "coffee-shop-testing",
+  "scripts": {
+    "test": "jest --config jest.config.js --passWithNoTests",
+    "test:watch": "jest --config jest.config.js --watch",
+    "test:coverage": "jest --config jest.config.js --coverage",
+    "test:unit": "jest --config jest.config.js --testPathPattern='tests/unit'",
+    "test:integration": "jest --config jest.config.js --testPathPattern='tests/integration'"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  }
+}

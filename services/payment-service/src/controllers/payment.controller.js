@@ -41,9 +41,9 @@ exports.getAll = async (req, res) => {
           c.full_name AS customer_name,
           u.full_name AS cashier_name
          FROM payments p
-         JOIN orders o ON p.order_id = o.id
-         LEFT JOIN customers c ON o.customer_id = c.id
-         LEFT JOIN users u ON o.cashier_id = u.id
+         JOIN order_db.orders o ON p.order_id = o.id
+         LEFT JOIN user_db.customers c ON o.customer_id = c.id
+         LEFT JOIN auth_db.users u ON o.cashier_id = u.id
          ${where}
          ORDER BY p.created_at DESC
          LIMIT ? OFFSET ?`,
@@ -76,10 +76,10 @@ exports.getOne = async (req, res) => {
               u.full_name AS cashier_name,
               rb.full_name AS refunded_by_name
        FROM payments p
-       JOIN orders o ON p.order_id = o.id
-       LEFT JOIN customers c ON o.customer_id = c.id
-       LEFT JOIN users u ON o.cashier_id = u.id
-       LEFT JOIN users rb ON p.refunded_by = rb.id
+       JOIN order_db.orders o ON p.order_id = o.id
+       LEFT JOIN user_db.customers c ON o.customer_id = c.id
+       LEFT JOIN auth_db.users u ON o.cashier_id = u.id
+       LEFT JOIN auth_db.users rb ON p.refunded_by = rb.id
        WHERE p.id = ? OR p.uuid = ? OR p.transaction_id = ?`,
       [id, id, id]
     );
@@ -100,7 +100,7 @@ exports.processPayment = async (req, res) => {
 
     // Get order
     const order = await queryOne(
-      'SELECT * FROM orders WHERE id = ? AND status IN ("pending","processing")',
+      'SELECT * FROM order_db.orders WHERE id = ? AND status IN ("pending","processing")',
       [order_id]
     );
 
@@ -140,14 +140,14 @@ exports.processPayment = async (req, res) => {
 
       // Update order status to completed
       await conn.execute(
-        'UPDATE orders SET status = "completed", completed_at = NOW() WHERE id = ?',
+        'UPDATE order_db.orders SET status = "completed", completed_at = NOW() WHERE id = ?',
         [order_id]
       );
 
       // Update customer stats if customer exists
       if (order.customer_id) {
         await conn.execute(
-          `UPDATE customers SET
+          `UPDATE user_db.customers SET
             total_spent = total_spent + ?,
             total_orders = total_orders + 1,
             loyalty_points = loyalty_points + ?,
@@ -199,17 +199,17 @@ exports.processPayment = async (req, res) => {
     });
 
     // Deduct inventory
-    const orderItems = await query('SELECT * FROM order_items WHERE order_id = ?', [order_id]);
+    const orderItems = await query('SELECT * FROM order_db.order_items WHERE order_id = ?', [order_id]);
     for (const item of orderItems) {
       await query(
-        `UPDATE inventory SET
+        `UPDATE inventory_db.inventory SET
           quantity_in_stock = quantity_in_stock - ?,
           quantity_reserved = GREATEST(0, quantity_reserved - ?)
          WHERE product_id = ?`,
         [item.quantity, item.quantity, item.product_id]
       );
       await query(
-        'UPDATE products SET total_sold = total_sold + ? WHERE id = ?',
+        'UPDATE product_db.products SET total_sold = total_sold + ? WHERE id = ?',
         [item.quantity, item.product_id]
       );
     }
@@ -280,7 +280,7 @@ exports.processRefund = async (req, res) => {
 
     if (isFullRefund) {
       await query(
-        'UPDATE orders SET status = "refunded" WHERE id = ?',
+        'UPDATE order_db.orders SET status = "refunded" WHERE id = ?',
         [payment.order_id]
       );
     }
@@ -332,7 +332,7 @@ exports.getStats = async (req, res) => {
         `SELECT DATE_FORMAT(created_at, '%Y-%m-%d') AS date,
                 COUNT(*) AS transactions, SUM(amount) AS revenue
          FROM payments p ${where}
-         GROUP BY DATE(created_at)
+         GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
          ORDER BY date ASC`,
         params
       ),

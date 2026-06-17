@@ -130,29 +130,20 @@ export default function SettingsPage() {
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Ảnh quá lớn, tối đa 2MB');
-      return;
-    }
-    // Read as base64 and upload
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const base64 = ev.target.result;
-      setAvatarPreview(base64);
-
-      try {
-        // Upload to server
-        const res = await settingsAPI.uploadAvatar(base64);
-        const avatarUrl = res.data?.data?.avatar_url;
-        if (avatarUrl) {
-          setProfileForm((prev) => ({ ...prev, avatar_url: avatarUrl }));
-          toast.success('Đã upload ảnh đại diện! Bấm Cập nhật hồ sơ để lưu.');
-        }
-      } catch {
-        toast.error('Upload ảnh thất bại, thử URL khác');
+    if (file.size > 2 * 1024 * 1024) { toast.error('Ảnh quá lớn, tối đa 2MB'); return; }
+    setSaving(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await settingsAPI.uploadFile(formData);
+      const avatarUrl = res.data?.data?.url;
+      if (avatarUrl) {
+        setProfileForm((prev) => ({ ...prev, avatar_url: avatarUrl }));
+        setAvatarPreview(avatarUrl);
+        toast.success('Đã upload ảnh! Bấm Cập nhật hồ sơ để lưu.');
       }
-    };
-    reader.readAsDataURL(file);
+    } catch { toast.error('Upload ảnh thất bại, thử lại sau'); }
+    finally { setSaving(false); }
   };
 
   return (

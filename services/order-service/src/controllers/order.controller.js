@@ -25,8 +25,8 @@ exports.getAll = async (req, res) => {
     query(
       `SELECT o.*, c.full_name AS customer_name, u.full_name AS cashier_name
        FROM orders o
-       LEFT JOIN customers c ON o.customer_id = c.id
-       JOIN users u ON o.cashier_id = u.id
+       LEFT JOIN user_db.customers c ON o.customer_id = c.id
+       JOIN auth_db.users u ON o.cashier_id = u.id
        ${where}
        ORDER BY o.created_at DESC
        LIMIT ? OFFSET ?`,
@@ -34,7 +34,7 @@ exports.getAll = async (req, res) => {
     ),
     query(
       `SELECT COUNT(*) AS total FROM orders o
-       LEFT JOIN customers c ON o.customer_id = c.id
+       LEFT JOIN user_db.customers c ON o.customer_id = c.id
        ${where}`,
       params
     ),
@@ -53,8 +53,8 @@ exports.getOne = async (req, res) => {
   const order = await queryOne(
     `SELECT o.*, c.full_name AS customer_name, u.full_name AS cashier_name
      FROM orders o
-     LEFT JOIN customers c ON o.customer_id = c.id
-     JOIN users u ON o.cashier_id = u.id
+     LEFT JOIN user_db.customers c ON o.customer_id = c.id
+     JOIN auth_db.users u ON o.cashier_id = u.id
      WHERE o.id = ?`,
     [req.params.id]
   );
@@ -63,7 +63,7 @@ exports.getOne = async (req, res) => {
   const items = await query(
     `SELECT oi.*, p.name AS current_product_name
      FROM order_items oi
-     LEFT JOIN products p ON oi.product_id = p.id
+     LEFT JOIN product_db.products p ON oi.product_id = p.id
      WHERE oi.order_id = ?`,
     [order.id]
   );
@@ -90,7 +90,7 @@ exports.create = async (req, res) => {
 
       for (const item of items) {
         const [productRows] = await conn.execute(
-          'SELECT id, name, sku, price FROM products WHERE id = ? AND deleted_at IS NULL AND is_active = 1',
+          'SELECT id, name, sku, price FROM product_db.products WHERE id = ? AND deleted_at IS NULL AND is_active = 1',
           [item.product_id]
         );
         const product = productRows[0];
