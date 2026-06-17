@@ -28,8 +28,8 @@ exports.getAll = async (req, res) => {
       `SELECT p.*, c.name AS category_name,
               i.quantity_in_stock, i.quantity_available
        FROM products p
-       LEFT JOIN categories c ON p.category_id = c.id
-       LEFT JOIN inventory i ON p.id = i.product_id
+       LEFT JOIN category_db.categories c ON p.category_id = c.id
+       LEFT JOIN inventory_db.inventory i ON p.id = i.product_id
        ${where}
        ORDER BY p.created_at DESC
        LIMIT ? OFFSET ?`,
@@ -52,8 +52,8 @@ exports.getOne = async (req, res) => {
     `SELECT p.*, c.name AS category_name,
             i.quantity_in_stock, i.quantity_reserved, i.quantity_available
      FROM products p
-     LEFT JOIN categories c ON p.category_id = c.id
-     LEFT JOIN inventory i ON p.id = i.product_id
+     LEFT JOIN category_db.categories c ON p.category_id = c.id
+     LEFT JOIN inventory_db.inventory i ON p.id = i.product_id
      WHERE p.id = ? AND p.deleted_at IS NULL`,
     [req.params.id]
   );
@@ -79,7 +79,7 @@ exports.create = async (req, res) => {
     );
     const productId = result.insertId;
     await conn.execute(
-      `INSERT INTO inventory (product_id, quantity_in_stock, min_stock_level)
+      `INSERT INTO inventory_db.inventory (product_id, quantity_in_stock, min_stock_level)
        VALUES (?, ?, 10)`,
       [productId, initial_stock]
     );

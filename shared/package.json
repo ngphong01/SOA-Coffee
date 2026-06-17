@@ -1,8 +1,11 @@
 {
   "name": "coffee-shop-shared",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Shared utilities for Coffee Shop Microservices",
   "main": "index.js",
+  "scripts": {
+    "test": "jest --config ../jest.config.js --testPathPattern='shared|tests' --passWithNoTests"
+  },
   "dependencies": {
     "mysql2": "^3.6.0",
     "redis": "^4.6.7",
@@ -10,6 +13,22 @@
     "winston": "^3.11.0",
     "jsonwebtoken": "^9.0.2",
     "bcryptjs": "^2.4.3",
-    "express-validator": "^7.1.0"
+    "express-validator": "^7.1.0",
+    "uuid": "^9.0.0",
+    "prom-client": "^15.1.0",
+    "@opentelemetry/api": "^1.7.0",
+    "@opentelemetry/sdk-trace-node": "^1.18.0",
+    "@opentelemetry/sdk-trace-base": "^1.18.0",
+    "@opentelemetry/exporter-jaeger": "^1.18.0",
+    "@opentelemetry/instrumentation-express": "^0.33.0",
+    "@opentelemetry/instrumentation-http": "^0.43.0",
+    "@opentelemetry/instrumentation": "^0.43.0",
+    "@opentelemetry/resources": "^1.18.0",
+    "@opentelemetry/semantic-conventions": "^1.18.0",
+    "winston-elasticsearch": "^0.17.4"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
   }
 }

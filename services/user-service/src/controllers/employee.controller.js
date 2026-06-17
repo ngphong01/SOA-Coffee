@@ -28,15 +28,15 @@ exports.getAll = async (req, res) => {
         `SELECT e.*, u.full_name, u.email, u.phone, u.avatar_url,
                 r.name AS role, r.display_name AS role_display
          FROM employees e
-         JOIN users u ON e.user_id = u.id
-         JOIN roles r ON u.role_id = r.id
+         JOIN auth_db.users u ON e.user_id = u.id
+         JOIN auth_db.roles r ON u.role_id = r.id
          ${where}
          ORDER BY u.full_name ASC
          LIMIT ? OFFSET ?`,
         [...params, parseInt(limit, 10), offset]
       ),
       query(
-        `SELECT COUNT(*) AS total FROM employees e JOIN users u ON e.user_id = u.id ${where}`,
+        `SELECT COUNT(*) AS total FROM employees e JOIN auth_db.users u ON e.user_id = u.id ${where}`,
         params
       ),
     ]);
@@ -61,8 +61,8 @@ exports.getOne = async (req, res) => {
       `SELECT e.*, u.full_name, u.email, u.phone, u.avatar_url, u.is_active,
               r.name AS role, r.display_name AS role_display
        FROM employees e
-       JOIN users u ON e.user_id = u.id
-       JOIN roles r ON u.role_id = r.id
+       JOIN auth_db.users u ON e.user_id = u.id
+       JOIN auth_db.roles r ON u.role_id = r.id
        WHERE e.id = ? OR e.uuid = ? OR e.employee_code = ?`,
       [id, id, id]
     );
@@ -72,7 +72,7 @@ exports.getOne = async (req, res) => {
     const stats = await queryOne(
       `SELECT COUNT(*) AS total_orders_handled,
               SUM(o.total_amount) AS total_sales_generated
-       FROM orders o WHERE o.cashier_id = ? AND o.status = 'completed'`,
+       FROM order_db.orders o WHERE o.cashier_id = ? AND o.status = 'completed'`,
       [employee.user_id]
     );
 
@@ -92,7 +92,7 @@ exports.create = async (req, res) => {
       national_id, address, notes,
     } = req.body;
 
-    const user = await queryOne('SELECT id FROM users WHERE id = ?', [user_id]);
+    const user = await queryOne('SELECT id FROM auth_db.users WHERE id = ?', [user_id]);
     if (!user) return ApiResponse.notFound(res, 'User not found');
 
     const existing = await queryOne('SELECT id FROM employees WHERE user_id = ?', [user_id]);
@@ -115,7 +115,7 @@ exports.create = async (req, res) => {
     );
 
     const employee = await queryOne(
-      'SELECT e.*, u.full_name, u.email FROM employees e JOIN users u ON e.user_id = u.id WHERE e.id = ?',
+      'SELECT e.*, u.full_name, u.email FROM employees e JOIN auth_db.users u ON e.user_id = u.id WHERE e.id = ?',
       [result.insertId]
     );
 
@@ -169,19 +169,19 @@ exports.update = async (req, res) => {
     if (phone !== undefined) { userUpdateFields.push('phone = ?'); userUpdateParams.push(phone); }
     if (avatar_url !== undefined) { userUpdateFields.push('avatar_url = ?'); userUpdateParams.push(avatar_url); }
     if (role !== undefined) {
-      const roleRow = await queryOne('SELECT id FROM roles WHERE name = ?', [role]);
+      const roleRow = await queryOne('SELECT id FROM auth_db.roles WHERE name = ?', [role]);
       if (roleRow) { userUpdateFields.push('role_id = ?'); userUpdateParams.push(roleRow.id); }
     }
     if (userUpdateFields.length > 0) {
       userUpdateParams.push(employee.user_id);
-      await query(`UPDATE users SET ${userUpdateFields.join(', ')}, updated_at = NOW() WHERE id = ?`, userUpdateParams);
+      await query(`UPDATE auth_db.users SET ${userUpdateFields.join(', ')}, updated_at = NOW() WHERE id = ?`, userUpdateParams);
     }
 
     const updated = await queryOne(
       `SELECT e.*, u.full_name, u.email, u.phone, u.avatar_url,
               r.name AS role, r.display_name AS role_display
-       FROM employees e JOIN users u ON e.user_id = u.id
-       JOIN roles r ON u.role_id = r.id WHERE e.id = ?`,
+       FROM employees e JOIN auth_db.users u ON e.user_id = u.id
+       JOIN auth_db.roles r ON u.role_id = r.id WHERE e.id = ?`,
       [id]
     );
     return ApiResponse.success(res, updated, 'Employee updated successfully');

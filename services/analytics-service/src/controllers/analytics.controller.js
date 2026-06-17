@@ -37,20 +37,20 @@ exports.dashboard = async (req, res) => {
     recentOrders,
     topProducts,
   ] = await Promise.all([
-    query(`SELECT COUNT(*) AS count FROM orders WHERE DATE(created_at) = CURDATE()`),
-    query(`SELECT COALESCE(SUM(total_amount), 0) AS total FROM orders
+    query(`SELECT COUNT(*) AS count FROM order_db.orders WHERE DATE(created_at) = CURDATE()`),
+    query(`SELECT COALESCE(SUM(total_amount), 0) AS total FROM order_db.orders
            WHERE DATE(created_at) = CURDATE() AND status = 'completed'`),
-    query(`SELECT COUNT(*) AS count FROM products WHERE deleted_at IS NULL AND is_active = 1`),
-    query(`SELECT COUNT(*) AS count FROM inventory i
-           JOIN products p ON i.product_id = p.id
+    query(`SELECT COUNT(*) AS count FROM product_db.products WHERE deleted_at IS NULL AND is_active = 1`),
+    query(`SELECT COUNT(*) AS count FROM inventory_db.inventory i
+           JOIN product_db.products p ON i.product_id = p.id
            WHERE i.quantity_available <= i.min_stock_level AND p.deleted_at IS NULL`),
     query(
       `SELECT id, order_number, status, total_amount, created_at
-       FROM orders ORDER BY created_at DESC LIMIT 5`
+       FROM order_db.orders ORDER BY created_at DESC LIMIT 5`
     ),
     query(
       `SELECT p.id, p.name, p.total_sold, p.price
-       FROM products p WHERE p.deleted_at IS NULL
+       FROM product_db.products p WHERE p.deleted_at IS NULL
        ORDER BY p.total_sold DESC LIMIT 5`
     ),
   ]);
@@ -82,7 +82,7 @@ exports.revenue = async (req, res) => {
          COUNT(*) AS order_count,
          COALESCE(SUM(total_amount), 0) AS total_revenue,
          COALESCE(AVG(total_amount), 0) AS avg_order_value
-       FROM orders
+       FROM order_db.orders
        WHERE status = 'completed' AND ${sql}`,
       params
     ),
@@ -90,7 +90,7 @@ exports.revenue = async (req, res) => {
       `SELECT DATE(created_at) AS date,
               COUNT(*) AS orders,
               COALESCE(SUM(total_amount), 0) AS revenue
-       FROM orders
+       FROM order_db.orders
        WHERE status = 'completed' AND ${sql}
        GROUP BY DATE(created_at)
        ORDER BY date ASC`,
@@ -98,8 +98,8 @@ exports.revenue = async (req, res) => {
     ),
     query(
       `SELECT pay.method, COALESCE(SUM(pay.amount), 0) AS total
-       FROM payments pay
-       JOIN orders o ON pay.order_id = o.id
+       FROM payment_db.payments pay
+       JOIN order_db.orders o ON pay.order_id = o.id
        WHERE pay.status = 'completed' AND ${sql.replace(/created_at/g, 'o.created_at')}
        GROUP BY pay.method`,
       params
@@ -140,9 +140,9 @@ exports.topProducts = async (req, res) => {
     `SELECT p.id, p.name, p.sku,
             COALESCE(SUM(oi.quantity), 0) AS total_quantity_sold,
             COALESCE(SUM(oi.total_price), 0) AS total_revenue
-     FROM order_items oi
-     JOIN orders o ON oi.order_id = o.id
-     JOIN products p ON oi.product_id = p.id
+     FROM order_db.order_items oi
+     JOIN order_db.orders o ON oi.order_id = o.id
+     JOIN product_db.products p ON oi.product_id = p.id
      WHERE o.status = 'completed' AND ${sql.replace(/created_at/g, 'o.created_at')}
      GROUP BY p.id, p.name, p.sku
      ORDER BY total_quantity_sold DESC

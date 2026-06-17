@@ -49,7 +49,7 @@ exports.register = async (req, res) => {
   );
 
   const user = await queryOne(
-    'SELECT id, uuid, full_name, email, role_id, is_active FROM users WHERE id = ?',
+    'SELECT id, uuid, full_name, email, phone, avatar_url, role_id, is_active FROM users WHERE id = ?',
     [result.insertId]
   );
 
@@ -62,7 +62,7 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   const user = await queryOne(
-    `SELECT id, uuid, full_name, email, password_hash, role_id, is_active, is_verified
+    `SELECT id, uuid, full_name, email, phone, avatar_url, password_hash, role_id, is_active, is_verified
      FROM users WHERE email = ? AND deleted_at IS NULL`,
     [email]
   );
@@ -93,7 +93,7 @@ exports.refresh = async (req, res) => {
     }
 
     const user = await queryOne(
-      'SELECT id, uuid, full_name, email, role_id, is_active FROM users WHERE id = ? AND deleted_at IS NULL',
+      'SELECT id, uuid, full_name, email, phone, avatar_url, role_id, is_active FROM users WHERE id = ? AND deleted_at IS NULL',
       [payload.id]
     );
     if (!user || !user.is_active) {

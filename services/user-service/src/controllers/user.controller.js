@@ -58,8 +58,8 @@ exports.getCustomer = async (req, res) => {
     const orders = await query(
       `SELECT o.order_number, o.status, o.total_amount, o.created_at,
               COUNT(oi.id) AS item_count
-       FROM orders o
-       LEFT JOIN order_items oi ON o.id = oi.order_id
+       FROM order_db.orders o
+       LEFT JOIN order_db.order_items oi ON o.id = oi.order_id
        WHERE o.customer_id = ?
        GROUP BY o.id
        ORDER BY o.created_at DESC
@@ -144,6 +144,35 @@ exports.deleteCustomer = async (req, res) => {
   }
 };
 
+// ─── CUSTOMER STATS ───────────────────────────────────────
+exports.getCustomerStats = async (req, res) => {
+  try {
+    const [segments, topCustomer] = await Promise.all([
+      query(
+        `SELECT segment, COUNT(*) AS count,
+                SUM(total_spent) AS total_revenue
+         FROM customers
+         WHERE is_active = 1 AND deleted_at IS NULL
+         GROUP BY segment`
+      ),
+      queryOne(
+        `SELECT full_name, total_spent, loyalty_points, total_orders
+         FROM customers
+         WHERE is_active = 1 AND deleted_at IS NULL
+         ORDER BY total_spent DESC
+         LIMIT 1`
+      ),
+    ]);
+
+    const total = segments.reduce((sum, s) => sum + s.count, 0);
+    const stats = { total, segments, topCustomer };
+    return ApiResponse.success(res, stats);
+  } catch (error) {
+    logger.error('Customer stats error:', error);
+    throw error;
+  }
+};
+
 exports.getAllUsers = async (req, res) => {
   try {
     const { page = 1, limit = 20, search = '', role_id, is_active } = req.query;
@@ -163,14 +192,14 @@ exports.getAllUsers = async (req, res) => {
         `SELECT u.id, u.uuid, u.full_name, u.email, u.phone, u.avatar_url,
                 u.is_active, u.is_verified, u.last_login_at, u.created_at,
                 r.name AS role, r.display_name AS role_display
-         FROM users u
-         JOIN roles r ON u.role_id = r.id
+         FROM auth_db.users u
+         JOIN auth_db.roles r ON u.role_id = r.id
          ${where}
          ORDER BY u.created_at DESC
          LIMIT ? OFFSET ?`,
         [...params, parseInt(limit, 10), offset]
       ),
-      query(`SELECT COUNT(*) AS total FROM users u ${where}`, params),
+      query(`SELECT COUNT(*) AS total FROM auth_db.users u ${where}`, params),
     ]);
 
     const pagination = {
@@ -204,10 +233,10 @@ exports.updateProfile = async (req, res) => {
     updates.push('updated_at = NOW()');
     params.push(userId);
 
-    await query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
+    await query(`UPDATE auth_db.users SET ${updates.join(', ')} WHERE id = ?`, params);
 
     const updated = await queryOne(
-      'SELECT u.id, u.full_name, u.email, u.phone, u.avatar_url, r.name AS role FROM users u LEFT JOIN roles r ON u.role_id = r.id WHERE u.id = ?',
+      'SELECT u.id, u.full_name, u.email, u.phone, u.avatar_url, r.name AS role FROM auth_db.users u LEFT JOIN auth_db.roles r ON u.role_id = r.id WHERE u.id = ?',
       [userId]
     );
 
@@ -221,11 +250,11 @@ exports.updateProfile = async (req, res) => {
 exports.toggleUserStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await queryOne('SELECT id, is_active FROM users WHERE id = ? AND deleted_at IS NULL', [id]);
+    const user = await queryOne('SELECT id, is_active FROM auth_db.users WHERE id = ? AND deleted_at IS NULL', [id]);
     if (!user) return ApiResponse.notFound(res, 'User not found');
 
     const newStatus = !user.is_active;
-    await query('UPDATE users SET is_active = ?, updated_at = NOW() WHERE id = ?', [newStatus, id]);
+    await query('UPDATE auth_db.users SET is_active = ?, updated_at = NOW() WHERE id = ?', [newStatus, id]);
     return ApiResponse.success(res, { is_active: newStatus }, `User ${newStatus ? 'activated' : 'deactivated'}`);
   } catch (error) {
     logger.error('Toggle user status error:', error);
