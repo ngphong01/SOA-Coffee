@@ -44,8 +44,9 @@ docker compose up --build -d
 
 ## Default Login
 
-- **Email:** `admin@coffeeshop.com`
-- **Password:** `Admin@123456`
+- **Email:** `phong@triennguyen.com`
+- **Password:** `Phong@2004`
+- **Display Name:** PHONG CHỦ SHOP (Admin)
 
 ## Running Tests
 
