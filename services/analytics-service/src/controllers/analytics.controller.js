@@ -161,3 +161,119 @@ exports.topProducts = async (req, res) => {
   await Cache.set(cacheKey, data, 300);
   return ApiResponse.success(res, data, 'Top products analytics');
 };
+
+// status orders by anhtuan
+exports.orderStats = async (req, res) => {
+  const { period = '30days', date_from, date_to } = req.query;
+  const cacheKey = Cache.generateKey('analytics', 'orders', period, date_from || '', date_to || '');
+
+  const cached = await Cache.get(cacheKey);
+  if (cached) return ApiResponse.success(res, cached, 'Order analytics (cached)');
+
+  const { sql, params } = getDateFilter(period, date_from, date_to);
+
+  const [summary, byStatus, byDay] = await Promise.all([
+    query(
+      `SELECT
+         COUNT(*) AS total_orders,
+         COALESCE(SUM(total_amount), 0) AS total_amount,
+         COALESCE(AVG(total_amount), 0) AS avg_order_value
+       FROM order_db.orders
+       WHERE ${sql}`,
+      params
+    ),
+    query(
+      `SELECT status, COUNT(*) AS count
+       FROM order_db.orders
+       WHERE ${sql}
+       GROUP BY status`,
+      params
+    ),
+    query(
+      `SELECT DATE(created_at) AS date, COUNT(*) AS orders
+       FROM order_db.orders
+       WHERE ${sql}
+       GROUP BY DATE(created_at)
+       ORDER BY date ASC`,
+      params
+    ),
+  ]);
+
+  const data = {
+    period,
+    summary: {
+      totalOrders: Number(summary[0].total_orders),
+      totalAmount: parseFloat(summary[0].total_amount),
+      avgOrderValue: parseFloat(summary[0].avg_order_value),
+    },
+    ordersByStatus: byStatus.map((r) => ({
+      status: r.status,
+      count: Number(r.count),
+    })),
+    ordersByDay: byDay.map((r) => ({
+      date: r.date,
+      orders: Number(r.orders),
+    })),
+  };
+
+  await Cache.set(cacheKey, data, 300);
+  return ApiResponse.success(res, data, 'Order analytics');
+};
+
+// status payments by anhtuan
+exports.paymentStats = async (req, res) => {
+  const { period = '30days', date_from, date_to } = req.query;
+  const cacheKey = Cache.generateKey('analytics', 'payments', period, date_from || '', date_to || '');
+
+  const cached = await Cache.get(cacheKey);
+  if (cached) return ApiResponse.success(res, cached, 'Payment analytics (cached)');
+
+  const { sql, params } = getDateFilter(period, date_from, date_to);
+  const paymentDateSql = sql.replace(/created_at/g, 'pay.created_at');
+
+  const [summary, byMethod, byStatus] = await Promise.all([
+    query(
+      `SELECT
+         COUNT(*) AS total_payments,
+         COALESCE(SUM(amount), 0) AS total_amount
+       FROM payment_db.payments pay
+       WHERE ${paymentDateSql}`,
+      params
+    ),
+    query(
+      `SELECT method, COUNT(*) AS count, COALESCE(SUM(amount), 0) AS total
+       FROM payment_db.payments pay
+       WHERE ${paymentDateSql}
+       GROUP BY method`,
+      params
+    ),
+    query(
+      `SELECT status, COUNT(*) AS count, COALESCE(SUM(amount), 0) AS total
+       FROM payment_db.payments pay
+       WHERE ${paymentDateSql}
+       GROUP BY status`,
+      params
+    ),
+  ]);
+
+  const data = {
+    period,
+    summary: {
+      totalPayments: Number(summary[0].total_payments),
+      totalAmount: parseFloat(summary[0].total_amount),
+    },
+    paymentsByMethod: byMethod.map((r) => ({
+      method: r.method,
+      count: Number(r.count),
+      total: parseFloat(r.total),
+    })),
+    paymentsByStatus: byStatus.map((r) => ({
+      status: r.status,
+      count: Number(r.count),
+      total: parseFloat(r.total),
+    })),
+  };
+
+  await Cache.set(cacheKey, data, 300);
+  return ApiResponse.success(res, data, 'Payment analytics');
+};
