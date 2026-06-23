@@ -2,6 +2,7 @@
   "name": "coffee-shop-frontend",
   "version": "1.0.0",
   "private": true,
+  "sideEffects": ["*.css"],
   "proxy": "http://api-gateway:3000",
   "scripts": {
     "start": "react-scripts start",
