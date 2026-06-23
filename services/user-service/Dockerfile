@@ -10,9 +10,10 @@ COPY shared ./shared
 COPY services/user-service/src ./services/user-service/src/
 
 RUN addgroup -g 1001 -S nodejs \
- && adduser -S nodeuser -u 1001 \
- && chown -R nodeuser:nodejs /app
-USER nodeuser
+  && adduser -S nodeuser -u 1001 \
+  && mkdir -p /app/uploads \
+  && chmod 777 /app/uploads \
+  && chown -R nodeuser:nodejs /app
 
 ENV PORT=3002
 ENV NODE_PATH=/app/shared/node_modules:/app/services/user-service/node_modules

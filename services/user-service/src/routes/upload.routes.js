@@ -4,7 +4,7 @@ const fs = require('fs');
 const multer = require('multer');
 const ApiResponse = require('../../../../shared/utils/response');
 
-const uploadsDir = path.join(__dirname, '..', '..', 'uploads');
+const uploadsDir = path.join(__dirname, '..', '..', '..', '..', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }

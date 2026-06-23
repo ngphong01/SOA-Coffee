@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Package, FolderTree, Warehouse, ShoppingCart,
   CreditCard, Users, UserCog, BarChart3, Settings,
-  Coffee, LogOut, Bell, Search, Sparkles, ArrowRight,
+  Coffee, LogOut, Bell, Search, Sparkles, ArrowRight, Ticket,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../api/axios.config';
@@ -12,17 +12,18 @@ const ROLE_LABELS = { 1: 'Super Admin', 2: 'Admin', 3: 'Quản lý', 4: 'Thu ng�
 
 // Menu items with role restrictions (match DB: 1=super_admin, 2=admin, 3=manager, 4=cashier, 5=barista, 6=viewer)
 const allNav = [
-  { to: '/', icon: LayoutDashboard, label: 'Tổng quan', end: true, roles: [1, 2, 3, 4, 5, 6] },
-  { to: '/products', icon: Package, label: 'Sản phẩm', roles: [1, 2, 3] },
-  { to: '/categories', icon: FolderTree, label: 'Danh mục', roles: [1, 2, 3] },
-  { to: '/inventory', icon: Warehouse, label: 'Kho hàng', roles: [1, 2, 3] },
-  { to: '/orders', icon: ShoppingCart, label: 'Đơn hàng', roles: [1, 2, 3, 4, 5] },
-  { to: '/payments', icon: CreditCard, label: 'Thanh toán', roles: [1, 2, 3, 4] },
-  { to: '/customers', icon: Users, label: 'Khách hàng', roles: [1, 2, 3, 4] },
-  { to: '/employees', icon: UserCog, label: 'Nhân viên', roles: [1, 2] },
-  { to: '/analytics/revenue', icon: BarChart3, label: 'Doanh thu', roles: [1, 2, 3] },
-  { to: '/analytics/sales', icon: Sparkles, label: 'Bán hàng', roles: [1, 2, 3] },
-  { to: '/settings', icon: Settings, label: 'Cài đặt', roles: [1, 2] },
+  { to: '/admin', icon: LayoutDashboard, label: 'Tổng quan', end: true, roles: [1, 2, 3, 4, 5, 6] },
+  { to: '/admin/products', icon: Package, label: 'Sản phẩm', roles: [1, 2, 3] },
+  { to: '/admin/categories', icon: FolderTree, label: 'Danh mục', roles: [1, 2, 3] },
+  { to: '/admin/inventory', icon: Warehouse, label: 'Kho hàng', roles: [1, 2, 3] },
+  { to: '/admin/orders', icon: ShoppingCart, label: 'Đơn hàng', roles: [1, 2, 3, 4, 5] },
+  { to: '/admin/payments', icon: CreditCard, label: 'Thanh toán', roles: [1, 2, 3, 4] },
+  { to: '/admin/customers', icon: Users, label: 'Khách hàng', roles: [1, 2, 3, 4] },
+  { to: '/admin/employees', icon: UserCog, label: 'Nhân viên', roles: [1, 2] },
+  { to: '/admin/analytics/revenue', icon: BarChart3, label: 'Doanh thu', roles: [1, 2, 3] },
+  { to: '/admin/analytics/sales', icon: Sparkles, label: 'Bán hàng', roles: [1, 2, 3] },
+  { to: '/admin/vouchers', icon: Ticket, label: 'Voucher', roles: [1, 2, 3] },
+  { to: '/admin/settings', icon: Settings, label: 'Cài đặt', roles: [1, 2] },
 ];
 
 export default function DashboardLayout() {
@@ -79,12 +80,12 @@ export default function DashboardLayout() {
           {/* Logo */}
           <div className="p-5 flex items-center border-b border-white/10">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
-                <Coffee size={22} className="text-coffee-200" />
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center overflow-hidden shadow-lg shadow-coffee-900/30">
+                <img src="/logo.svg" alt="Coffee Shop" className="w-full h-full object-contain p-1" />
               </div>
               <div className="min-w-0">
-                <h1 className="font-bold text-base tracking-tight">Quán Cà Phê</h1>
-                <p className="text-xs text-coffee-300">Hệ thống quản lý</p>
+                <h1 className="font-bold text-base tracking-tight">CoffeeOS</h1>
+                <p className="text-xs text-coffee-300">Quản lý quán cà phê</p>
               </div>
             </div>
           </div>
@@ -156,7 +157,7 @@ export default function DashboardLayout() {
                       <div className="p-2">
                         <p className="text-xs font-semibold text-coffee-400 uppercase px-2 py-1">Sản phẩm</p>
                         {searchResults.products.map(p => (
-                          <div key={p.id} onClick={() => { navigate(`/products/${p.id}`); setSearchResults(null); setSearchQuery(''); }}
+                            <div key={p.id} onClick={() => { navigate(`/admin/products/${p.id}`); setSearchResults(null); setSearchQuery(''); }}
                             className="flex items-center gap-3 px-3 py-2 hover:bg-coffee-50 rounded-lg cursor-pointer">
                             <div className="w-8 h-8 rounded-lg bg-coffee-100 flex items-center justify-center text-coffee-600 text-xs font-bold">
                               {p.name?.charAt(0)}
@@ -174,7 +175,7 @@ export default function DashboardLayout() {
                       <div className="p-2 border-t border-coffee-50">
                         <p className="text-xs font-semibold text-coffee-400 uppercase px-2 py-1">Khách hàng</p>
                         {searchResults.customers.map(c => (
-                          <div key={c.id} onClick={() => { navigate(`/customers/${c.id}`); setSearchResults(null); setSearchQuery(''); }}
+                            <div key={c.id} onClick={() => { navigate(`/admin/customers/${c.id}`); setSearchResults(null); setSearchQuery(''); }}
                             className="flex items-center gap-3 px-3 py-2 hover:bg-coffee-50 rounded-lg cursor-pointer">
                             <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 text-xs font-bold">
                               {c.full_name?.charAt(0)}

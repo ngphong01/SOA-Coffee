@@ -53,7 +53,7 @@ export default function EmployeeDetailPage() {
   return (
     <div className="space-y-5 max-w-5xl">
       <div className="flex items-center gap-4">
-        <Link to="/employees" className="p-2 hover:bg-gray-100 rounded-lg"><ArrowLeft size={20} /></Link>
+        <Link to="/admin/employees" className="p-2 hover:bg-gray-100 rounded-lg"><ArrowLeft size={20} /></Link>
         <div className="flex-1 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             {employee.avatar_url ? (

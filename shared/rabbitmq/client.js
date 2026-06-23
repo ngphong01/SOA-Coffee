@@ -20,12 +20,16 @@ const connect = async () => {
 
 const publish = async (routingKey, message) => {
   const ch = await connect();
-  ch.publish(
+  const published = ch.publish(
     EXCHANGE,
     routingKey,
     Buffer.from(JSON.stringify({ ...message, publishedAt: new Date().toISOString() })),
     { persistent: true, contentType: 'application/json' }
   );
+  if (!published) {
+    logger.warn(`RabbitMQ publish blocked (backpressure) for ${routingKey}, waiting drain...`);
+    await new Promise((resolve) => ch.once('drain', resolve));
+  }
 };
 
 const subscribe = async (queueName, routingKeys, handler) => {

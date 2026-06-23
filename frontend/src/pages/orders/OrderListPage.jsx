@@ -50,7 +50,7 @@ export default function OrderListPage() {
           <h1 className="page-title">Đơn hàng</h1>
           <p className="page-subtitle">{pagination.total} đơn hàng</p>
         </div>
-        <Link to="/orders/create" className="btn-primary"><Plus size={16} /> Tạo đơn mới (POS)</Link>
+        <Link to="/admin/orders/create" className="btn-primary"><Plus size={16} /> Tạo đơn mới (POS)</Link>
       </div>
       <div className="card p-4">
         <div className="flex flex-wrap gap-3">

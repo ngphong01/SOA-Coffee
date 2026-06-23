@@ -4,5 +4,5 @@ import { useSelector } from 'react-redux';
 
 export default function AuthLayout() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Outlet />;
+  return isAuthenticated ? <Navigate to="/admin/dashboard" replace /> : <Outlet />;
 }

@@ -20,15 +20,16 @@ module.exports = (err, req, res, next) => {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
-  if (err.code === 'ECONNREFUSED') {
+  if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT' || err.code === 'ENOTFOUND' || err.code === 'ECONNRESET' || err.code === 'EPIPE') {
     return res.status(503).json({ success: false, message: 'Service unavailable' });
   }
 
   const statusCode = err.statusCode || err.status || 500;
+  const isProduction = process.env.NODE_ENV === 'production';
   res.status(statusCode).json({
     success: false,
     statusCode,
-    message: process.env.NODE_ENV === 'production'
+    message: (isProduction && statusCode >= 500)
       ? 'Internal server error'
       : err.message,
     timestamp: new Date().toISOString(),

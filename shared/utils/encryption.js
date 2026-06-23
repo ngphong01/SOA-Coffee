@@ -5,7 +5,10 @@ const IV_LENGTH = 16;
 const AUTH_TAG_LENGTH = 16;
 
 const getKey = () => {
-  const secret = process.env.ENCRYPTION_KEY || 'coffee-shop-default-encryption-key-32chr!';
+  const secret = process.env.ENCRYPTION_KEY;
+  if (!secret) {
+    throw new Error('ENCRYPTION_KEY environment variable is required for encryption');
+  }
   return crypto.scryptSync(secret, 'coffee-salt', 32);
 };
 

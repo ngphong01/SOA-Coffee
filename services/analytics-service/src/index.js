@@ -7,6 +7,7 @@ const { createRedisClient, Cache } = require('../../../shared/redis/client');
 const { connect: connectRabbitMQ, subscribe } = require('../../../shared/rabbitmq/client');
 const EVENTS = require('../../../shared/rabbitmq/events');
 const createLogger = require('../../../shared/utils/logger');
+const { bootstrapService } = require('../../../shared/utils/bootstrap');
 const analyticsRoutes = require('./routes/analytics.routes');
 
 const logger = createLogger('Analytics-Service');
@@ -17,12 +18,6 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-app.get('/health', (req, res) => res.json({
-  status: 'healthy',
-  service: 'analytics-service',
-  timestamp: new Date().toISOString(),
-}));
-
 app.use('/api/analytics', analyticsRoutes);
 
 app.use((err, req, res, next) => {
@@ -30,14 +25,8 @@ app.use((err, req, res, next) => {
   res.status(err.statusCode || 500).json({ success: false, message: err.message });
 });
 
-const startServer = async () => {
-  try {
-    createPool();
-    await testConnection();
-    await createRedisClient();
-    await connectRabbitMQ();
-
-    // ── Subscribe ORDER_CREATED: cập nhật real-time order count ──
+const startSubscriptions = async () => {
+  // ── Subscribe ORDER_CREATED: cập nhật real-time order count ──
     await subscribe('analytics.order.queue', [EVENTS.ORDER_CREATED], async (event) => {
       logger.info(`Analytics: order created #${event.orderId}`);
       const today = new Date().toISOString().slice(0, 10);
@@ -73,11 +62,22 @@ const startServer = async () => {
       await Cache.delPattern('analytics:revenue:*');
     });
 
-    app.listen(PORT, () => logger.info(`Analytics Service running on port ${PORT}`));
-  } catch (error) {
-    logger.error('Failed to start Analytics Service:', error);
-    process.exit(1);
-  }
 };
 
-startServer();
+bootstrapService({
+  serviceName: 'analytics-service',
+  port: PORT,
+  app,
+  onReady: async () => {
+    try {
+      createPool();
+      await testConnection();
+      await createRedisClient();
+      await connectRabbitMQ();
+      await startSubscriptions();
+    } catch (error) {
+      logger.error('Failed to start Analytics Service:', error);
+      process.exit(1);
+    }
+  }
+});

@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
-const { createRedisClient } = require('../../shared/redis/client');
+const { createRedisClient, getClient: getRedisClient } = require('../../shared/redis/client');
 const createLogger = require('../../shared/utils/logger');
 const requestLogger = require('./middleware/logger.middleware');
 const rateLimit = require('./middleware/rateLimit.middleware');
@@ -20,7 +20,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost', 'http://localhost:3000', 'https://coffeshopsystem.io.vn', 'https://www.coffeshopsystem.io.vn'],
+  credentials: true,
+}));
 app.use(correlationId);
 app.use(metricsMiddleware('api-gateway'));
 
@@ -83,7 +86,25 @@ const startServer = async () => {
     if (process.env.REDIS_HOST) {
       await createRedisClient();
     }
-    app.listen(PORT, () => logger.info(`API Gateway running on port ${PORT}`));
+    const server = app.listen(PORT, () => logger.info(`API Gateway running on port ${PORT}`));
+
+    // Graceful shutdown
+    const shutdown = async (signal) => {
+      logger.info(`${signal} received — shutting down gracefully...`);
+      server.close(async () => {
+        try {
+          const redisClient = getRedisClient();
+          if (redisClient) await redisClient.quit();
+        } catch {}
+        logger.info('API Gateway shut down');
+        process.exit(0);
+      });
+      // Force exit sau 10s nếu chưa đóng được
+      setTimeout(() => process.exit(1), 10000);
+    };
+
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => shutdown('SIGINT'));
   } catch (error) {
     logger.error('Failed to start API Gateway:', error);
     process.exit(1);

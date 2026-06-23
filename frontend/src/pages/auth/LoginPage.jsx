@@ -6,8 +6,8 @@ import { login } from '../../store/slices/authSlice';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('admin@coffeeshop.com');
-  const [password, setPassword] = useState('Admin@123456');
+  const [email, setEmail] = useState('phong@triennguyen.com');
+  const [password, setPassword] = useState('Phong@2004');
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading } = useSelector((s) => s.auth);
@@ -16,7 +16,7 @@ export default function LoginPage() {
     e.preventDefault();
     const result = await dispatch(login({ email, password }));
     if (login.fulfilled.match(result)) {
-      toast.success('Chào mừng trở lại! ☕');
+      toast.success('Chào mừng trở lại!');
       navigate('/');
     } else {
       toast.error(result.payload || 'Đăng nhập thất bại');
@@ -37,11 +37,11 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10 animate-scale-in">
         {/* Logo section */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-xl rounded-3xl mb-5 shadow-glow border border-white/10">
-            <Coffee size={40} className="text-coffee-200" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-xl rounded-3xl mb-5 shadow-glow border border-white/10 p-2">
+            <img src="/logo.svg" alt="CoffeeOS" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-4xl font-display font-bold text-white tracking-tight">
-            Quán Cà Phê
+            CoffeeOS
           </h1>
           <p className="text-coffee-300 mt-2 text-sm">
             Đăng nhập để quản lý cửa hàng của bạn

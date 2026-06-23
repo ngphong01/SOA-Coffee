@@ -29,7 +29,7 @@ module.exports = (req, res, next) => {
   }
 
   try {
-    req.user = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET);
+    req.user = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET, { algorithms: ['HS256'] });
     return next();
   } catch {
     return res.status(401).json({ success: false, message: 'Invalid or expired token' });

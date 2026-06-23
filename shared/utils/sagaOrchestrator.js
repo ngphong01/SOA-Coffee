@@ -34,7 +34,7 @@ class SagaOrchestrator {
    */
   async execute(context = {}) {
     const executed = [];
-    const sagaId = `saga_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const sagaId = `saga_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
     logger.info(`Saga ${sagaId} started with ${this.steps.length} steps`);
 

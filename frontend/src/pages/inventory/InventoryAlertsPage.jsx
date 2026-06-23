@@ -24,7 +24,7 @@ export default function InventoryAlertsPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-4">
-        <Link to="/inventory" className="p-2 hover:bg-gray-100 rounded-lg"><ArrowLeft size={20} /></Link>
+        <Link to="/admin/inventory" className="p-2 hover:bg-gray-100 rounded-lg"><ArrowLeft size={20} /></Link>
         <div>
           <h1 className="page-title">Cảnh báo tồn kho thấp</h1>
           <p className="page-subtitle">{alerts.length} mặt hàng cần chú ý</p>

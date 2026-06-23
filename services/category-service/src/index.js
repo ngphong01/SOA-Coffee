@@ -5,6 +5,7 @@ const cors = require('cors');
 const { createPool, testConnection } = require('../../../shared/database/mysql');
 const { createRedisClient } = require('../../../shared/redis/client');
 const createLogger = require('../../../shared/utils/logger');
+const { bootstrapService } = require('../../../shared/utils/bootstrap');
 const categoryRoutes = require('./routes/category.routes');
 
 const logger = createLogger('Category-Service');
@@ -15,12 +16,6 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-app.get('/health', (req, res) => res.json({
-  status: 'healthy',
-  service: 'category-service',
-  timestamp: new Date().toISOString(),
-}));
-
 app.use('/api/categories', categoryRoutes);
 
 app.use((err, req, res, next) => {
@@ -28,16 +23,18 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: err.message });
 });
 
-const startServer = async () => {
-  try {
-    createPool();
-    await testConnection();
-    await createRedisClient();
-    app.listen(PORT, () => logger.info(`Category Service running on port ${PORT}`));
-  } catch (error) {
-    logger.error('Failed to start Category Service:', error);
-    process.exit(1);
+bootstrapService({
+  serviceName: 'category-service',
+  port: PORT,
+  app,
+  onReady: async () => {
+    try {
+      createPool();
+      await testConnection();
+      await createRedisClient();
+    } catch (error) {
+      logger.error('Failed to start Category Service:', error);
+      process.exit(1);
+    }
   }
-};
-
-startServer();
+});

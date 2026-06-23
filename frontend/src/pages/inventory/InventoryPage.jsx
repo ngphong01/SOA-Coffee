@@ -142,7 +142,7 @@ export default function InventoryPage() {
       render: (_, row) => (
         <div className="flex justify-end gap-2">
           <button type="button" onClick={() => setAdjustModal(row)} className="px-3 py-1.5 text-xs border border-amber-200 text-amber-700 hover:bg-amber-50 rounded-lg">Điều chỉnh</button>
-          <Link to="/inventory/transactions" className="px-3 py-1.5 text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg">Lịch sử</Link>
+          <Link to="/admin/inventory/transactions" className="px-3 py-1.5 text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg">Lịch sử</Link>
         </div>
       ),
     },
@@ -156,8 +156,8 @@ export default function InventoryPage() {
           <p className="page-subtitle">Theo dõi tồn kho và cảnh báo theo thời gian thực</p>
         </div>
         <div className="flex gap-3">
-          <Link to="/inventory/import" className="btn-primary"><Plus size={16} /> Nhập kho</Link>
-          <Link to="/inventory/transactions" className="btn-secondary">Lịch sử</Link>
+          <Link to="/admin/inventory/import" className="btn-primary"><Plus size={16} /> Nhập kho</Link>
+          <Link to="/admin/inventory/transactions" className="btn-secondary">Lịch sử</Link>
         </div>
       </div>
 
@@ -194,7 +194,7 @@ export default function InventoryPage() {
           <option value="low_stock">Sắp hết</option>
           <option value="out_of_stock">Hết hàng</option>
         </select>
-        <Link to="/inventory/alerts" className="btn-secondary whitespace-nowrap">Cảnh báo</Link>
+        <Link to="/admin/inventory/alerts" className="btn-secondary whitespace-nowrap">Cảnh báo</Link>
       </div>
 
       <DataTable columns={columns} data={filtered} loading={loading} emptyMessage="Không có dữ liệu tồn kho." />

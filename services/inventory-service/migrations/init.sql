@@ -28,6 +28,28 @@ CREATE TABLE IF NOT EXISTS
         )
     ) ENGINE = InnoDB;
 
+-- Seed inventory data for products (product_id matches product-service seed)
+INSERT IGNORE INTO
+    inventory (
+        product_id,
+        quantity_in_stock,
+        min_stock_level,
+        reorder_point
+    )
+VALUES
+    (1, 200, 10, 20),
+    (2, 150, 10, 20),
+    (3, 180, 10, 20),
+    (4, 100, 10, 15),
+    (5, 120, 10, 15),
+    (6, 80, 5, 10),
+    (7, 90, 5, 10),
+    (8, 300, 20, 30),
+    (9, 60, 5, 10),
+    (10, 50, 5, 10),
+    (11, 40, 5, 10),
+    (12, 70, 5, 10);
+
 -- 2. INVENTORY TRANSACTIONS
 CREATE TABLE IF NOT EXISTS
     inventory_transactions (

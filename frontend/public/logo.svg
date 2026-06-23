@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="58" fill="#4A2C2A" stroke="#6B3A2E" stroke-width="3"/>
+  <!-- Steam lines -->
+  <path d="M42 28 Q45 18 48 28" stroke="#D4A574" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M55 22 Q58 12 61 22" stroke="#D4A574" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M68 26 Q71 16 74 26" stroke="#D4A574" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <!-- Coffee cup -->
+  <rect x="30" y="40" width="52" height="45" rx="6" fill="#6B3A2E" stroke="#8B5A3C" stroke-width="2"/>
+  <rect x="30" y="40" width="52" height="12" rx="4" fill="#8B5A3C"/>
+  <!-- Cup handle -->
+  <path d="M82 52 Q96 52 96 62 Q96 72 82 72" stroke="#8B5A3C" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- Coffee surface -->
+  <ellipse cx="56" cy="52" rx="22" ry="6" fill="#3E1F1A"/>
+  <!-- Coffee bean deco -->
+  <ellipse cx="48" cy="68" rx="6" ry="9" fill="#D4A574" transform="rotate(-15 48 68)"/>
+  <ellipse cx="62" cy="70" rx="5" ry="8" fill="#C49A6C" transform="rotate(10 62 70)"/>
+  <line x1="44" y1="72" x2="52" y2="64" stroke="#4A2C2A" stroke-width="1" opacity="0.5"/>
+  <line x1="58" y1="74" x2="66" y2="66" stroke="#4A2C2A" stroke-width="1" opacity="0.5"/>
+  <!-- Saucer -->
+  <ellipse cx="56" cy="88" rx="30" ry="5" fill="#8B5A3C" opacity="0.6"/>
+</svg>

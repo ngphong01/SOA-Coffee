@@ -63,7 +63,7 @@ const AuditLog = {
    * Lấy IP và User-Agent từ request
    */
   extractRequestInfo: (req) => ({
-    ipAddress: req.headers['x-forwarded-for'] || req.ip || null,
+    ipAddress: req.ip || null,
     userAgent: req.headers['user-agent'] || null,
   }),
 };

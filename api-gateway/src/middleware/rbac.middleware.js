@@ -70,16 +70,16 @@ const ROLE_RULES = [
   { path: '/api/v1/employees', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2] },
   { path: '/api/employees', methods: ['POST', 'PUT', 'DELETE'], roles: [1, 2] },
   // ── Settings ──
-  { path: '/api/v1/settings', methods: '*', roles: [1, 2] },
   { path: '/api/v1/settings', methods: ['GET'], roles: [1, 2, 3] },
-  { path: '/api/settings', methods: '*', roles: [1, 2] },
+  { path: '/api/v1/settings', methods: '*', roles: [1, 2] },
   { path: '/api/settings', methods: ['GET'], roles: [1, 2, 3] },
+  { path: '/api/settings', methods: '*', roles: [1, 2] },
   // ── Analytics ──
   { path: '/api/v1/analytics', methods: '*', roles: [1, 2, 3] },
   { path: '/api/analytics', methods: '*', roles: [1, 2, 3] },
   // ── Users management ──
-  { path: '/api/v1/users', methods: ['GET'], roles: [1, 2] },
-  { path: '/api/users', methods: ['GET'], roles: [1, 2] },
+  { path: '/api/v1/users', methods: ['GET'], roles: [1, 2, 3, 4] },
+  { path: '/api/users', methods: ['GET'], roles: [1, 2, 3, 4] },
 ];
 
 const applyRbac = (app) => {

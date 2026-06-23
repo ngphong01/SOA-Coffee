@@ -195,6 +195,9 @@ exports.updateStatus = async (req, res) => {
   if (status === 'completed') {
     await publish(EVENTS.ORDER_COMPLETED, { orderId: id, orderNumber: order.order_number });
   }
+  if (status === 'cancelled') {
+    await publish(EVENTS.ORDER_CANCELLED, { orderId: id, orderNumber: order.order_number });
+  }
 
   await AuditLog.log({
     userId: req.headers['x-user-id'] || null,

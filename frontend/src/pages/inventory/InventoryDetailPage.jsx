@@ -19,7 +19,7 @@ export default function InventoryDetailPage() {
   return (
     <div className="space-y-5 max-w-3xl">
       <div className="flex items-center gap-4">
-        <Link to="/inventory" className="p-2 hover:bg-gray-100 rounded-lg"><ArrowLeft size={20} /></Link>
+        <Link to="/admin/inventory" className="p-2 hover:bg-gray-100 rounded-lg"><ArrowLeft size={20} /></Link>
         <h1 className="text-2xl font-bold text-gray-900">{item.name}</h1>
       </div>
       <div className="card grid grid-cols-2 gap-4 text-sm">

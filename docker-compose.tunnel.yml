@@ -1,0 +1,14 @@
+# Cloudflare Tunnel - Expose local services to internet with SSL
+# Chạy: docker compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d
+# Sau đó vào https://one.dash.cloudflare.com/ -> Zero Trust -> Tunnels để lấy token
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: coffee_tunnel
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CF_TUNNEL_TOKEN}
+    networks:
+      - coffee-network

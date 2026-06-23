@@ -120,8 +120,12 @@ exports.forgotPassword = async (req, res) => {
 };
 
 exports.seedAdmin = async () => {
-  const email = 'admin@coffeeshop.com';
-  const password = 'Admin@123456';
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD;
+  if (!email || !password) {
+    logger.warn('ADMIN_EMAIL or ADMIN_PASSWORD not set — skipping admin seed');
+    return;
+  }
   const rounds = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
   const password_hash = await bcrypt.hash(password, rounds);
   const existing = await queryOne('SELECT id FROM users WHERE email = ?', [email]);
@@ -139,4 +143,33 @@ exports.seedAdmin = async () => {
     );
     logger.info('Admin user seeded');
   }
+};
+
+exports.me = async (req, res) => {
+  const userId = req.headers['x-user-id'] || req.user?.id;
+  if (!userId) return ApiResponse.unauthorized(res, 'Not authenticated');
+
+  const user = await queryOne(
+    'SELECT id, uuid, full_name, email, phone, avatar_url, role_id, is_active, is_verified, created_at FROM users WHERE id = ? AND deleted_at IS NULL',
+    [userId]
+  );
+  if (!user) return ApiResponse.notFound(res, 'User not found');
+  if (!user.is_active) return ApiResponse.unauthorized(res, 'Account is disabled');
+
+  return ApiResponse.success(res, user);
+};
+
+exports.getStats = async (req, res) => {
+  const [total, todayLogins, newToday, locked] = await Promise.all([
+    query('SELECT COUNT(*) AS count FROM users WHERE deleted_at IS NULL'),
+    query('SELECT COUNT(*) AS count FROM users WHERE DATE(last_login_at) = CURDATE()'),
+    query('SELECT COUNT(*) AS count FROM users WHERE DATE(created_at) = CURDATE()'),
+    query('SELECT COUNT(*) AS count FROM users WHERE is_active = 0 AND deleted_at IS NULL'),
+  ]);
+  return ApiResponse.success(res, {
+    totalUsers: total[0].count,
+    todayLogins: todayLogins[0].count,
+    newUsersToday: newToday[0].count,
+    lockedAccounts: locked[0].count,
+  });
 };

@@ -26,9 +26,10 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3308:3306"
+      - "127.0.0.1:3308:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./shared/database/migrations/00-grants.sql:/docker-entrypoint-initdb.d/00-grants.sql
       - ./services/auth-service/migrations/init.sql:/docker-entrypoint-initdb.d/01-auth.sql
       - ./services/user-service/migrations/init.sql:/docker-entrypoint-initdb.d/02-user.sql
       - ./services/user-service/migrations/02-settings.sql:/docker-entrypoint-initdb.d/02b-settings.sql
@@ -65,7 +66,7 @@ services:
       --maxmemory-policy allkeys-lru
       --appendonly yes
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -86,7 +87,7 @@ services:
       RABBITMQ_DEFAULT_VHOST: coffee_vhost
     ports:
       - "5672:5672"
-      - "15672:15672"
+      - "127.0.0.1:15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
@@ -155,6 +156,8 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672/coffee_vhost
       - BCRYPT_ROUNDS=${BCRYPT_ROUNDS}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     depends_on:
       mysql:
         condition: service_healthy
@@ -182,13 +185,18 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672/coffee_vhost
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - coffee-network
+    volumes:
+      - uploads_data:/app/uploads
 
   product-service:
     build:
@@ -368,7 +376,7 @@ services:
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
-      - "9200:9200"
+      - "127.0.0.1:9200:9200"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     networks:
@@ -387,7 +395,7 @@ services:
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     ports:
-      - "5601:5601"
+      - "127.0.0.1:5601:5601"
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -407,7 +415,7 @@ services:
       - "6831:6831/udp"
       - "6832:6832/udp"
       - "5778:5778"
-      - "16686:16686"   # UI
+      - "127.0.0.1:16686:16686"   # UI
       - "14268:14268"   # HTTP collector
       - "14250:14250"
       - "9411:9411"
@@ -428,7 +436,7 @@ services:
       - '--web.console.templates=/usr/share/prometheus/consoles'
       - '--storage.tsdb.retention.time=30d'
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     volumes:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
@@ -445,7 +453,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
     ports:
-      - "3001:3000"
+      - "127.0.0.1:3001:3000"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
@@ -462,8 +470,8 @@ services:
     restart: unless-stopped
     command: agent -dev -client=0.0.0.0 -ui
     ports:
-      - "8500:8500"   # UI + API
-      - "8600:8600/udp" # DNS
+      - "127.0.0.1:8500:8500"   # UI + API
+      - "127.0.0.1:8600:8600/udp" # DNS
     networks:
       - coffee-network
     healthcheck:

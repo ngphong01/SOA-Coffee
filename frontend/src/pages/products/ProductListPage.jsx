@@ -68,7 +68,7 @@ export default function ProductListPage() {
           <h1 className="page-title">Sản phẩm</h1>
           <p className="page-subtitle">{pagination.total} sản phẩm</p>
         </div>
-        <Link to="/products/create" className="btn-primary"><Plus size={16} /> Thêm sản phẩm</Link>
+        <Link to="/admin/products/create" className="btn-primary"><Plus size={16} /> Thêm sản phẩm</Link>
       </div>
       <div className="card">
         <div className="relative max-w-md">

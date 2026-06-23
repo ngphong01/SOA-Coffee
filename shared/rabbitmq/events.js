@@ -5,6 +5,7 @@ module.exports = {
   PAYMENT_COMPLETED: 'payment.completed',
   PAYMENT_REFUNDED: 'payment.refunded',
   ORDER_COMPLETED: 'order.completed',
+  ORDER_CANCELLED: 'order.cancelled',
   ORDER_CREATED: 'order.created',
   USER_REGISTERED: 'user.registered',
 };

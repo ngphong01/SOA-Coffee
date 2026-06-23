@@ -9,7 +9,8 @@ const cacheMiddleware = (ttlSeconds = 60) => {
     if (req.method !== 'GET') return next();
 
     try {
-      const key = `cache:${req.originalUrl}`;
+      const userId = req.user?.id || 'anonymous';
+      const key = `cache:${userId}:${req.originalUrl}`;
       const cached = await Cache.get(key);
       if (cached) {
         res.setHeader('X-Cache', 'HIT');

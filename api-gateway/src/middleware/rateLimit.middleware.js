@@ -23,8 +23,8 @@ const rateLimit = (options = {}) => {
   const max = options.max || MAX_REQUESTS;
 
   return (req, res, next) => {
-    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
-      || req.ip
+    // Lấy IP thật: ưu tiên remoteAddress, không tin X-Forwarded-For (dễ spoof)
+    const ip = req.ip
       || req.socket?.remoteAddress
       || 'unknown';
 

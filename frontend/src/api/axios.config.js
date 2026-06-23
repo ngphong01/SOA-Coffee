@@ -15,9 +15,11 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     if (error.response?.status === 401) {
+      const hadToken = !!localStorage.getItem('accessToken');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
-      if (!window.location.pathname.startsWith('/login')) {
+      // Only redirect if user was previously logged in (had a token)
+      if (hadToken && !window.location.pathname.startsWith('/login')) {
         window.location.href = '/login';
       }
     }

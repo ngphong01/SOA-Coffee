@@ -33,6 +33,7 @@ exports.dashboard = async (req, res) => {
     ordersToday,
     revenueToday,
     totalProducts,
+    totalCustomers,
     lowStock,
     recentOrders,
     topProducts,
@@ -41,6 +42,7 @@ exports.dashboard = async (req, res) => {
     query(`SELECT COALESCE(SUM(total_amount), 0) AS total FROM order_db.orders
            WHERE DATE(created_at) = CURDATE() AND status = 'completed'`),
     query(`SELECT COUNT(*) AS count FROM product_db.products WHERE deleted_at IS NULL AND is_active = 1`),
+    query(`SELECT COUNT(*) AS count FROM user_db.customers WHERE deleted_at IS NULL`),
     query(`SELECT COUNT(*) AS count FROM inventory_db.inventory i
            JOIN product_db.products p ON i.product_id = p.id
            WHERE i.quantity_available <= i.min_stock_level AND p.deleted_at IS NULL`),
@@ -56,9 +58,10 @@ exports.dashboard = async (req, res) => {
   ]);
 
   const data = {
-    ordersToday: ordersToday[0].count,
-    revenueToday: parseFloat(revenueToday[0].total),
-    activeProducts: totalProducts[0].count,
+    today_revenue: parseFloat(revenueToday[0].total),
+    today_orders: ordersToday[0].count,
+    total_products: totalProducts[0].count,
+    total_customers: totalCustomers[0].count,
     lowStockCount: lowStock[0].count,
     recentOrders,
     topProducts,

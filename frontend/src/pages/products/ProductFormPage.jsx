@@ -102,7 +102,7 @@ export default function ProductFormPage() {
         await productsAPI.create(payload);
         toast.success('Tạo sản phẩm thành công');
       }
-      navigate('/products');
+      navigate('/admin/products');
     } catch (e) {
       toast.error(e.response?.data?.message || 'Không lưu được sản phẩm');
     } finally {

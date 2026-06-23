@@ -42,4 +42,8 @@ router.post(
   asyncHandler(authController.forgotPassword)
 );
 
+router.get('/stats', asyncHandler(authController.getStats));
+
+router.get('/me', asyncHandler(authController.me));
+
 module.exports = router;
