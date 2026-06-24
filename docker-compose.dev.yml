@@ -94,7 +94,11 @@ services:
       - ./frontend/public:/app/public
       - ./frontend/index.html:/app/index.html
       - ./frontend/package.json:/app/package.json
+      - ./frontend/tailwind.config.js:/app/tailwind.config.js
+      - ./frontend/postcss.config.js:/app/postcss.config.js
     environment:
       - NODE_ENV=development
       - WDS_SOCKET_PORT=0
       - DANGEROUSLY_DISABLE_HOST_CHECK=true
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
