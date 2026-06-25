@@ -4,7 +4,6 @@ Hệ thống quản lý quán cà phê quy mô doanh nghiệp, xây dựng theo 
 
 ---
 
-## 📘 CÂU 1: CLO1 — Hiểu quá trình phân tích, thiết kế dịch vụ sử dụng SOAP, REST và Microservice
 
 ### 1.1. Kiến trúc Microservice trong dự án
 
