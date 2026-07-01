@@ -1,4 +1,4 @@
-﻿# ☕ Coffee Shop Management System
+﻿#  Coffee Shop Management System
 
 Hệ thống quản lý quán cà phê theo kiến trúc **Microservices** — 9 dịch vụ, React frontend, API Gateway, Docker, giám sát đầy đủ.
 
