@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from "../../utils/icons";
 import { inventoryAPI } from '../../api/inventory.api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 

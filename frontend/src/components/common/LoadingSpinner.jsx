@@ -1,5 +1,5 @@
 import React from 'react';
-import { Coffee } from 'lucide-react';
+import { Coffee } from "../../utils/icons";
 
 export default function LoadingSpinner() {
   return (

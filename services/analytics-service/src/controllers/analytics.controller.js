@@ -79,7 +79,7 @@ exports.revenue = async (req, res) => {
 
   const { sql, params } = getDateFilter(period, date_from, date_to);
 
-  const [summary, byDay, byMethod] = await Promise.all([
+  const [summary, byDay, byMethod, discounts, hourly] = await Promise.all([
     query(
       `SELECT
          COUNT(*) AS order_count,
@@ -107,6 +107,24 @@ exports.revenue = async (req, res) => {
        GROUP BY pay.method`,
       params
     ),
+    // Total discounts
+    query(
+      `SELECT COALESCE(SUM(discount_amount), 0) AS total_discounts
+       FROM order_db.orders
+       WHERE status = 'completed' AND ${sql}`,
+      params
+    ),
+    // Hourly breakdown
+    query(
+      `SELECT HOUR(created_at) AS hour,
+              COUNT(*) AS orders,
+              COALESCE(SUM(total_amount), 0) AS revenue
+       FROM order_db.orders
+       WHERE status = 'completed' AND ${sql}
+       GROUP BY HOUR(created_at)
+       ORDER BY hour ASC`,
+      params
+    ),
   ]);
 
   const data = {
@@ -115,6 +133,7 @@ exports.revenue = async (req, res) => {
       orderCount: summary[0].order_count,
       totalRevenue: parseFloat(summary[0].total_revenue),
       avgOrderValue: parseFloat(summary[0].avg_order_value),
+      totalDiscounts: parseFloat(discounts[0].total_discounts),
     },
     revenueByDay: byDay.map((r) => ({
       date: r.date,
@@ -124,6 +143,11 @@ exports.revenue = async (req, res) => {
     revenueByPaymentMethod: byMethod.map((r) => ({
       method: r.method,
       total: parseFloat(r.total),
+    })),
+    hourlyData: hourly.map((r) => ({
+      hour: r.hour,
+      orders: r.orders,
+      revenue: parseFloat(r.revenue),
     })),
   };
 

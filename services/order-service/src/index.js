@@ -9,6 +9,7 @@ const EVENTS = require('../../../shared/rabbitmq/events');
 const createLogger = require('../../../shared/utils/logger');
 const { bootstrapService } = require('../../../shared/utils/bootstrap');
 const orderRoutes = require('./routes/order.routes');
+const voucherRoutes = require('./routes/voucher.routes');
 
 const logger = createLogger('Order-Service');
 const app = express();
@@ -19,6 +20,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/orders', orderRoutes);
+app.use('/api/vouchers', voucherRoutes);
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error:', err);

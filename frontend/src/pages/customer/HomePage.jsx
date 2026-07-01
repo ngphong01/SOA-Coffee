@@ -4,7 +4,7 @@ import {
   Heart, ShoppingCart, Star, ChevronLeft, ChevronRight,
   Clock, Shield, Award, Truck, CheckCircle2, Coffee, TrendingUp,
   ArrowRight, Search
-} from 'lucide-react';
+} from "../../utils/icons";
 import api from '../../api/axios.config';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
@@ -177,14 +177,14 @@ const TESTIMONIALS = [
 
 function ProductSkeleton() {
   return (
-    <div className="flex-none w-[180px] bg-white rounded-2xl overflow-hidden border border-gray-100 animate-pulse">
-      <div className="h-[170px] bg-gray-100" />
-      <div className="p-3 space-y-2">
-        <div className="h-3 bg-gray-100 rounded-full w-4/5" />
-        <div className="h-3 bg-gray-100 rounded-full w-2/3" />
-        <div className="flex justify-between items-center mt-1">
-          <div className="h-4 bg-gray-100 rounded-full w-1/2" />
-          <div className="w-7 h-7 bg-gray-100 rounded-full" />
+    <div className="flex-none w-[220px] bg-white rounded-2xl overflow-hidden border border-gray-100 animate-pulse shadow-sm">
+      <div className="h-[200px] bg-gradient-to-br from-gray-100 to-gray-200" />
+      <div className="p-4 space-y-3">
+        <div className="h-3.5 bg-gray-100 rounded-full w-4/5" />
+        <div className="h-3   bg-gray-100 rounded-full w-3/5" />
+        <div className="flex justify-between items-center pt-1">
+          <div className="h-5 bg-gray-100 rounded-full w-1/2" />
+          <div className="w-9 h-9 bg-gray-100 rounded-full" />
         </div>
       </div>
     </div>
@@ -192,52 +192,136 @@ function ProductSkeleton() {
 }
 
 function ProductCard({ product, wishlistIds, onToggle, onAdd }) {
-  const inWL  = wishlistIds.has(product.id);
-  const [added, setAdded] = useState(false);
+  const inWL = wishlistIds.has(product.id);
+  const [added,  setAdded]  = useState(false);
+  const [imgErr, setImgErr] = useState(false);
 
   const handleAdd = (e) => {
-    e.preventDefault(); e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
     onAdd(product);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
 
+  const rating   = product.rating ?? 4.8;
+  const soldText = product.sold_count
+    ? product.sold_count > 999
+      ? (product.sold_count / 1000).toFixed(1) + 'k'
+      : String(product.sold_count)
+    : null;
+  const discountPct =
+    product.original_price && product.original_price > product.price
+      ? Math.round((1 - product.price / product.original_price) * 100)
+      : null;
+
   return (
     <Link
       to={'/product/' + product.id}
-      className="flex-none w-[180px] bg-white rounded-2xl overflow-hidden border border-gray-100
-                 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group cursor-pointer"
+      className="flex-none w-[220px] bg-white rounded-2xl overflow-hidden border border-gray-100
+                 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group
+                 cursor-pointer shadow-sm"
     >
-      <div className="relative h-[170px] bg-amber-50 overflow-hidden">
+      {/* ── ẢNH ── */}
+      <div className="relative h-[200px] bg-gradient-to-br from-amber-50 to-orange-50 overflow-hidden">
         <img
-          src={product.thumbnail_url || '/logo.svg'}
+          src={imgErr ? '/logo.svg' : (product.thumbnail_url || '/logo.svg')}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          onError={(e) => { e.target.src = '/logo.svg'; }}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          onError={() => setImgErr(true)}
         />
-        {product.is_featured && (
-          <span className="absolute top-2.5 left-2.5 bg-[#c8793a] text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
-            Nổi bật
-          </span>
-        )}
+
+        {/* Gradient bottom overlay */}
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/35 to-transparent" />
+
+        {/* Badges top-left */}
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+          {product.is_featured && (
+            <span className="bg-[#c8793a] text-white text-[10px] font-extrabold
+                             px-2.5 py-1 rounded-full shadow-md tracking-wide">
+              ⭐ Nổi bật
+            </span>
+          )}
+          {discountPct && (
+            <span className="bg-red-500 text-white text-[10px] font-extrabold
+                             px-2.5 py-1 rounded-full shadow-md">
+              -{discountPct}%
+            </span>
+          )}
+        </div>
+
+        {/* Wishlist button top-right */}
         <button
           onClick={(e) => onToggle(product, e)}
-          className={'absolute top-2.5 right-2.5 w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-sm backdrop-blur-sm ' + (inWL ? 'bg-red-500 text-white shadow-red-200' : 'bg-white/90 text-gray-400 hover:text-red-500 hover:bg-white')}
+          className={
+            'absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center ' +
+            'transition-all duration-200 shadow-md backdrop-blur-sm ' +
+            (inWL
+              ? 'bg-red-500 text-white scale-110'
+              : 'bg-white/90 text-gray-400 hover:text-red-500 hover:bg-white hover:scale-110')
+          }
         >
-          <Heart size={13} fill={inWL ? 'currentColor' : 'none'} strokeWidth={2} />
+          <Heart size={14} fill={inWL ? 'currentColor' : 'none'} strokeWidth={2} />
         </button>
-      </div>
-      <div className="p-3">
-        <p className="font-semibold text-[#2c1a0e] text-[13px] truncate mb-1.5">{product.name}</p>
-        <div className="flex items-center justify-between">
-          <span className="text-[#c8793a] font-bold text-[13px]">
-            {vnd(product.price).replace('₫', 'đ').replace(/\s/g, '')}
+
+        {/* Rating pill bottom-left */}
+        <div className="absolute bottom-2.5 left-3 flex items-center gap-1
+                        bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
+          <Star size={10} className="text-amber-400 fill-amber-400" />
+          <span className="text-white text-[10px] font-bold">{rating}</span>
+        </div>
+
+        {/* Sold count bottom-right */}
+        {soldText && (
+          <span className="absolute bottom-2.5 right-3 text-white/80 text-[10px] font-medium">
+            Đã bán {soldText}
           </span>
+        )}
+      </div>
+
+      {/* ── NỘI DUNG ── */}
+      <div className="p-4">
+        <p className="font-bold text-[#2c1a0e] text-[13.5px] leading-snug mb-1
+                      line-clamp-2 min-h-[36px]">
+          {product.name}
+        </p>
+
+        {product.short_description && (
+          <p className="text-gray-400 text-[11px] truncate mb-2">
+            {product.short_description}
+          </p>
+        )}
+
+        <div className="h-px bg-gray-100 my-3" />
+
+        {/* Giá + Nút thêm */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col">
+            <span className="text-[#c8793a] font-extrabold text-[15px] leading-none">
+              {vnd(product.price).replace('₫', 'đ').replace(/\s/g, '')}
+            </span>
+            {product.original_price && product.original_price > product.price && (
+              <span className="text-gray-300 text-[11px] line-through mt-0.5">
+                {vnd(product.original_price).replace('₫', 'đ').replace(/\s/g, '')}
+              </span>
+            )}
+          </div>
+
           <button
             onClick={handleAdd}
-            className={'w-7 h-7 rounded-full flex items-center justify-center text-white font-bold transition-all shadow-sm text-lg leading-none ' + (added ? 'bg-green-500 scale-90' : 'bg-[#2c1a0e] hover:bg-[#c8793a] hover:scale-110')}
+            className={
+              'flex items-center gap-1.5 text-white text-[11px] font-bold px-3 py-2 ' +
+              'rounded-full transition-all duration-200 shadow-sm flex-shrink-0 ' +
+              (added
+                ? 'bg-green-500 scale-95'
+                : 'bg-[#2c1a0e] hover:bg-[#c8793a] hover:scale-105 active:scale-95')
+            }
           >
-            {added ? <CheckCircle2 size={13} /> : '+'}
+            {added ? (
+              <><CheckCircle2 size={12} /><span>Đã thêm</span></>
+            ) : (
+              <><ShoppingCart size={12} /><span>Thêm</span></>
+            )}
           </button>
         </div>
       </div>
@@ -246,46 +330,81 @@ function ProductCard({ product, wishlistIds, onToggle, onAdd }) {
 }
 
 function ProductRow({ items, loading, wishlistIds, onToggle, onAdd }) {
-  const ref = useRef(null);
-  const scroll = (d) => ref.current?.scrollBy({ left: d * 200, behavior: 'smooth' });
+  const rowRef = useRef(null);
+  const scroll = useCallback((dir) => {
+    rowRef.current?.scrollBy({ left: dir * 240, behavior: 'smooth' });
+  }, []);
+
+  const isEmpty = !loading && items.length === 0;
 
   return (
     <div className="relative">
+      {/* Chevron trái */}
       <button
         onClick={() => scroll(-1)}
-        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10
-                   w-9 h-9 rounded-full bg-white border border-gray-200 shadow-md
-                   items-center justify-center text-gray-500 hover:text-[#c8793a]
-                   hover:border-[#c8793a] transition hidden md:flex"
+        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 z-10
+                   w-10 h-10 rounded-full bg-white border border-gray-200 shadow-lg
+                   items-center justify-center text-gray-500
+                   hover:text-[#c8793a] hover:border-[#c8793a] hover:scale-110
+                   transition-all duration-200 hidden md:flex"
+        aria-label="Cuộn trái"
       >
-        <ChevronLeft size={17} />
+        <ChevronLeft size={18} />
       </button>
+
+      {/* Chevron phải */}
       <button
         onClick={() => scroll(1)}
-        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10
-                   w-9 h-9 rounded-full bg-white border border-gray-200 shadow-md
-                   items-center justify-center text-gray-500 hover:text-[#c8793a]
-                   hover:border-[#c8793a] transition hidden md:flex"
+        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 z-10
+                   w-10 h-10 rounded-full bg-white border border-gray-200 shadow-lg
+                   items-center justify-center text-gray-500
+                   hover:text-[#c8793a] hover:border-[#c8793a] hover:scale-110
+                   transition-all duration-200 hidden md:flex"
+        aria-label="Cuộn phải"
       >
-        <ChevronRight size={17} />
+        <ChevronRight size={18} />
       </button>
-      <div
-        ref={ref}
-        className="flex gap-4 overflow-x-auto pb-1 scroll-smooth"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        {loading
-          ? [...Array(5)].map((_, i) => <ProductSkeleton key={i} />)
-          : items.map((p) => (
-              <ProductCard
-                key={p.id}
-                product={p}
-                wishlistIds={wishlistIds}
-                onToggle={onToggle}
-                onAdd={onAdd}
-              />
-            ))}
-      </div>
+
+      {/* Empty state */}
+      {isEmpty ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center mb-4">
+            <Coffee size={34} className="text-[#c8793a] opacity-60" />
+          </div>
+          <p className="text-[#2c1a0e] font-semibold text-[15px] mb-1">
+            Chưa có sản phẩm nổi bật
+          </p>
+          <p className="text-gray-400 text-[13px] mb-5">
+            Hãy quay lại sau nhé, chúng tôi đang cập nhật!
+          </p>
+          <Link
+            to="/menu"
+            className="flex items-center gap-2 bg-[#c8793a] hover:bg-[#b5692a]
+                       text-white text-[13px] font-bold px-6 py-2.5 rounded-full
+                       transition-all hover:scale-105 shadow-md shadow-[#c8793a]/25"
+          >
+            Xem toàn bộ menu <ArrowRight size={14} />
+          </Link>
+        </div>
+      ) : (
+        <div
+          ref={rowRef}
+          className="flex gap-4 overflow-x-auto pb-2 scroll-smooth px-1"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {loading
+            ? [...Array(5)].map((_, i) => <ProductSkeleton key={i} />)
+            : items.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  wishlistIds={wishlistIds}
+                  onToggle={onToggle}
+                  onAdd={onAdd}
+                />
+              ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -308,9 +427,23 @@ export default function HomePage() {
       api.get('/products?limit=10&is_featured=true'),
       api.get('/products?limit=10&sort=sold_count&order=desc'),
     ]).then(([feat, best]) => {
+      const mapProduct = (p) => ({
+        ...p,
+        id: p.id || p._id,
+        image: p.thumbnail_url || p.image || null,
+        thumbnail_url: p.thumbnail_url || p.image || null,
+        is_featured: p.is_featured || false,
+        rating: p.rating || 4.8,
+        sold_count: p.total_sold || p.sold_count || 0,
+        review_count: p.review_count || 0,
+        original_price: p.original_price || null,
+        is_available: p.is_active === 1 || p.is_active === true,
+        description: p.description || '',
+        short_description: p.short_description || p.description || '',
+      });
       const ex = (r) =>
         r.status === 'fulfilled'
-          ? r.value.data?.data?.data || r.value.data?.data || []
+          ? (r.value.data?.data?.data || r.value.data?.data || []).map(mapProduct)
           : [];
       setFeatured(ex(feat));
       setBestSeller(ex(best));
@@ -430,19 +563,55 @@ export default function HomePage() {
       </section>
 
       {/* ========== SẢN PHẨM NỔI BẬT ========== */}
-      <section className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-[18px] font-extrabold text-[#2c1a0e]">Sản phẩm nổi bật</h2>
-          <div className="flex gap-2">
-            <button className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 hover:border-[#c8793a] hover:text-[#c8793a] transition">
-              <ChevronLeft size={16} />
-            </button>
-            <button className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 hover:border-[#c8793a] hover:text-[#c8793a] transition">
-              <ChevronRight size={16} />
-            </button>
+      <section className="max-w-7xl mx-auto px-6 py-10">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-1 h-5 rounded-full bg-[#c8793a] inline-block" />
+              <h2 className="text-[20px] font-extrabold text-[#2c1a0e] tracking-tight">
+                Sản phẩm nổi bật
+              </h2>
+            </div>
+            <p className="text-gray-400 text-[13px] pl-3">
+              Được yêu thích nhất tại Coffee Shop
+            </p>
           </div>
+
+          <Link
+            to="/menu"
+            className="flex items-center gap-1.5 text-[#c8793a] text-[13px] font-semibold
+                       hover:gap-2.5 transition-all duration-200 group"
+          >
+            Xem tất cả
+            <span
+              className="w-6 h-6 rounded-full border border-[#c8793a] flex items-center justify-center
+                         group-hover:bg-[#c8793a] group-hover:text-white transition-all duration-200"
+            >
+              <ChevronRight size={13} />
+            </span>
+          </Link>
         </div>
+
+        {/* Row */}
         <ProductRow items={featured} loading={loading} wishlistIds={wishlistIds} onToggle={toggleWishlist} onAdd={addToCart} />
+
+        {/* Bottom CTA */}
+        {!loading && featured.length > 0 && (
+          <div className="flex justify-center mt-8">
+            <Link
+              to="/menu"
+              className="flex items-center gap-2 border-2 border-[#2c1a0e] text-[#2c1a0e]
+                         text-[13px] font-bold px-8 py-3 rounded-full
+                         hover:bg-[#2c1a0e] hover:text-white
+                         transition-all duration-200 hover:scale-105 group"
+            >
+              <TrendingUp size={15} className="group-hover:text-[#c8793a] transition-colors" />
+              Xem thêm sản phẩm
+            </Link>
+          </div>
+        )}
+
       </section>
 
       {/* ========== ƯU ĐÃI ========== */}

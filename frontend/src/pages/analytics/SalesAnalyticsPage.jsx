@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { analyticsAPI } from '../../api/analytics.api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { Package } from 'lucide-react';
+import { Package } from "../../utils/icons";
 
 const formatCurrency = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0);
 const COLORS = ['#6F4E37', '#A0522D', '#D2691E', '#CD853F', '#DEB887', '#F4A460', '#8B4513', '#A52A2A', '#BC8F5F', '#D2B48C'];

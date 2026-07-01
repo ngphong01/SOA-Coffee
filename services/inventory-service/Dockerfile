@@ -1,17 +1,19 @@
-FROM node:18-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
+RUN apk add --no-cache wget
+
 COPY shared/package*.json ./shared/
 COPY services/inventory-service/package*.json ./services/inventory-service/
-RUN npm install --prefix shared --omit=dev && npm install --prefix services/inventory-service --omit=dev && npm cache clean --force
+RUN npm install --prefix shared --omit=dev --no-cache && npm install --prefix services/inventory-service --omit=dev --no-cache
 
 COPY shared ./shared
 COPY services/inventory-service/src ./services/inventory-service/src/
 
 RUN addgroup -g 1001 -S nodejs \
- && adduser -S nodeuser -u 1001 \
- && chown -R nodeuser:nodejs /app
+  && adduser -S nodeuser -u 1001 \
+  && chown -R nodeuser:nodejs /app
 USER nodeuser
 
 ENV PORT=3005

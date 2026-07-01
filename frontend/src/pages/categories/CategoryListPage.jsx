@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { categoriesAPI } from '../../api/categories.api';
-import { Edit2, Loader2, Plus, Search, Trash2, Tag } from 'lucide-react';
+import { Edit2, Loader2, Plus, Search, Trash2, Tag } from "../../utils/icons";
 import toast from 'react-hot-toast';
 
 const CategoryModal = ({ open, onClose, onSave, initial }) => {

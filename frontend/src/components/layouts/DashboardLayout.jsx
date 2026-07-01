@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, FolderTree, Warehouse, ShoppingCart,
   CreditCard, Users, UserCog, BarChart3, Settings,
   Coffee, LogOut, Bell, Search, Sparkles, ArrowRight, Ticket,
-} from 'lucide-react';
+} from "../../utils/icons";
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../api/axios.config';
 

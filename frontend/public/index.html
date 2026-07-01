@@ -2,14 +2,60 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/logo.svg" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#4A2C2A" />
-    <meta name="description" content="Coffee Shop management system" />
-    <title>CoffeeOS</title>
+    <meta
+      name="description"
+      content="Coffee Shop - Thưởng thức cà phê tuyệt vời"
+    />
+
+    <!-- Preconnect để tăng tốc load fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!--
+      Font strategy:
+        - Be Vietnam Pro  → UI chính (body, buttons, labels) – hỗ trợ tiếng Việt chuẩn nhất
+        - Playfair Display → Heading / logo / accent text – sang trọng
+        - Noto Sans        → Fallback bổ sung cho ký tự đặc biệt tiếng Việt hiếm gặp
+    -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Noto+Sans:wght@400;500&display=swap&subset=vietnamese"
+      rel="stylesheet"
+    />
+
+    <title>CoffeeOS – Quản lý cửa hàng cà phê</title>
+
+    <!-- Inline CSS: áp dụng font ngay, tránh FOUT (Flash of Unstyled Text) -->
+    <style>
+      *,
+      *::before,
+      *::after {
+        font-family:
+          "Be Vietnam Pro",
+          "Noto Sans",
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+
+      .font-display {
+        font-family: "Playfair Display", "Be Vietnam Pro", Georgia, serif;
+      }
+
+      body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        font-feature-settings:
+          "kern" 1,
+          "liga" 1;
+      }
+    </style>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>Vui lòng bật JavaScript để sử dụng ứng dụng.</noscript>
     <div id="root"></div>
   </body>
 </html>

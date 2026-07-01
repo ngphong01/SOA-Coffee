@@ -7,7 +7,7 @@ import {
   Heart, ShoppingCart, Trash2, ArrowRight, Coffee,
   Grid3X3, List, SlidersHorizontal, Star, Share2,
   Check, RefreshCw, Package
-} from 'lucide-react';
+} from "../../utils/icons";
 
 const vnd = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0);
 const getWishlist = () => JSON.parse(localStorage.getItem('wishlist') || '[]');

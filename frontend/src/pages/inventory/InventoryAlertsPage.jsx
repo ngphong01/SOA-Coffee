@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchLowStockAlerts } from '../../store/slices/inventorySlice';
-import { AlertTriangle, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, ArrowLeft } from "../../utils/icons";
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 export default function InventoryAlertsPage() {

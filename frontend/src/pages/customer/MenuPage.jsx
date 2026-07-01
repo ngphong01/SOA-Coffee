@@ -573,9 +573,10 @@ export default function MenuPage() {
         const raw = r.data?.data?.data || r.data?.data || r.data || [];
         const list = Array.isArray(raw) ? raw : [];
         if (list.length > 0) {
+          // Map & compute product_count from products later
           setCategories([
-            { id:"all", name:"Tất cả", slug:"all", product_count: list.reduce((s,c) => s+(c.product_count||0), 0) },
-            ...list,
+            { id:"all", name:"Tất cả", slug:"all", product_count: 0 },
+            ...list.map(c => ({ ...c, product_count: 0 })),
           ]);
         } else {
           setCategories(MOCK_CATEGORIES);
@@ -638,12 +639,44 @@ export default function MenuPage() {
       features.forEach((f) => params.set(f, "true"));
 
       const r = await api.get(`/products?${params.toString()}`);
-      const data  = r.data?.data?.data || r.data?.data || r.data || [];
-      const total = r.data?.data?.total || (Array.isArray(data) ? data.length : 0);
+      const raw  = r.data?.data?.data || r.data?.data || r.data || [];
+      const list = Array.isArray(raw) ? raw : [];
+      const total = r.data?.meta?.pagination?.total || r.data?.data?.total || list.length;
 
-      if (Array.isArray(data) && data.length > 0) {
-        setProducts(data);
+      if (list.length > 0) {
+        // Map API fields → frontend fields
+        const mapped = list.map(p => ({
+          ...p,
+          id:               p.id || p._id,
+          image:            p.thumbnail_url || p.image || null,
+          is_available:     p.is_active === 1 || p.is_active === true || p.is_available === true,
+          rating:           p.rating || 4.5,
+          review_count:     p.review_count || 0,
+          sold_count:       p.total_sold || p.sold_count || 0,
+          original_price:   p.original_price || null,
+          is_featured:      p.is_featured || false,
+          is_new:           p.is_new || false,
+          is_bestseller:    p.is_bestseller || false,
+          description:      p.description || '',
+        }));
+        setProducts(mapped);
         setTotalProducts(total);
+
+        // Update category counts from current full product set
+        try {
+          const allR = await api.get('/products?limit=200');
+          const allRaw = allR.data?.data?.data || allR.data?.data || allR.data || [];
+          const allList = Array.isArray(allRaw) ? allRaw : [];
+          const catCounts = {};
+          allList.forEach(p => {
+            const cid = String(p.category_id);
+            catCounts[cid] = (catCounts[cid] || 0) + 1;
+          });
+          setCategories(prev => prev.map(c => {
+            if (c.id === 'all') return { ...c, product_count: allList.length };
+            return { ...c, product_count: catCounts[String(c.id)] || 0 };
+          }));
+        } catch { /* keep existing categories */ }
       } else {
         throw new Error("empty");
       }

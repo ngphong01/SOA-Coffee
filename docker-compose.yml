@@ -37,6 +37,7 @@ services:
       - ./services/category-service/migrations/init.sql:/docker-entrypoint-initdb.d/04-category.sql
       - ./services/inventory-service/migrations/init.sql:/docker-entrypoint-initdb.d/05-inventory.sql
       - ./services/order-service/migrations/init.sql:/docker-entrypoint-initdb.d/06-order.sql
+      - ./services/order-service/migrations/02-vouchers.sql:/docker-entrypoint-initdb.d/06b-vouchers.sql
       - ./services/payment-service/migrations/init.sql:/docker-entrypoint-initdb.d/07-payment.sql
       - ./services/analytics-service/migrations/init.sql:/docker-entrypoint-initdb.d/08-analytics.sql
     networks:
@@ -78,7 +79,7 @@ services:
       retries: 5
 
   rabbitmq:
-    image: rabbitmq:3.12-management-alpine
+    image: rabbitmq:3.13-management-alpine
     container_name: coffee_rabbitmq
     restart: unless-stopped
     environment:
@@ -86,7 +87,7 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
       RABBITMQ_DEFAULT_VHOST: coffee_vhost
     ports:
-      - "5672:5672"
+      - "127.0.0.1:5672:5672"
       - "127.0.0.1:15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
@@ -371,6 +372,7 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: coffee_elasticsearch
     restart: unless-stopped
+    mem_limit: 1g
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -404,21 +406,21 @@ services:
 
   # ── Jaeger (Distributed Tracing) ──
   jaeger:
-    image: jaegertracing/all-in-one:1.53
+    image: jaegertracing/all-in-one:latest
     container_name: coffee_jaeger
     restart: unless-stopped
     environment:
       - COLLECTOR_ZIPKIN_HOST_PORT=:9411
       - MEMORY_MAX_TRACES=10000
     ports:
-      - "5775:5775/udp"
-      - "6831:6831/udp"
-      - "6832:6832/udp"
-      - "5778:5778"
+      - "127.0.0.1:5775:5775/udp"
+      - "127.0.0.1:6831:6831/udp"
+      - "127.0.0.1:6832:6832/udp"
+      - "127.0.0.1:5778:5778"
       - "127.0.0.1:16686:16686"   # UI
-      - "14268:14268"   # HTTP collector
-      - "14250:14250"
-      - "9411:9411"
+      - "127.0.0.1:14268:14268"   # HTTP collector
+      - "127.0.0.1:14250:14250"
+      - "127.0.0.1:9411:9411"
     volumes:
       - jaeger_data:/var/lib/jaeger
     networks:
@@ -426,7 +428,7 @@ services:
 
   # ── Prometheus (Metrics) ──
   prometheus:
-    image: prom/prometheus:v2.48.0
+    image: prom/prometheus:v2.55.0
     container_name: coffee_prometheus
     restart: unless-stopped
     command:
@@ -445,7 +447,7 @@ services:
 
   # ── Grafana (Dashboards) ──
   grafana:
-    image: grafana/grafana:10.2.0
+    image: grafana/grafana:11.5.1
     container_name: coffee_grafana
     restart: unless-stopped
     environment:
@@ -453,7 +455,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
     ports:
-      - "127.0.0.1:3001:3000"
+      - "127.0.0.1:3008:3000"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
@@ -465,7 +467,7 @@ services:
 
   # ── Consul (Service Discovery) ──
   consul:
-    image: hashicorp/consul:1.17
+    image: hashicorp/consul:1.20
     container_name: coffee_consul
     restart: unless-stopped
     command: agent -dev -client=0.0.0.0 -ui
@@ -489,6 +491,13 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - api-gateway
+      api-gateway:
+        condition: service_started
     networks:
       - coffee-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

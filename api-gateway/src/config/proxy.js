@@ -37,6 +37,7 @@ const routes = [
   { path: '/api/v1/categories', target: process.env.CATEGORY_SERVICE_URL },
   { path: '/api/v1/inventory', target: process.env.INVENTORY_SERVICE_URL },
   { path: '/api/v1/orders', target: process.env.ORDER_SERVICE_URL },
+  { path: '/api/v1/vouchers', target: process.env.ORDER_SERVICE_URL },
   { path: '/api/v1/payments', target: process.env.PAYMENT_SERVICE_URL },
   { path: '/api/v1/employees', target: process.env.USER_SERVICE_URL },
   { path: '/api/v1/analytics', target: process.env.ANALYTICS_SERVICE_URL },
@@ -50,9 +51,12 @@ const routes = [
   { path: '/api/categories', target: process.env.CATEGORY_SERVICE_URL },
   { path: '/api/inventory', target: process.env.INVENTORY_SERVICE_URL },
   { path: '/api/orders', target: process.env.ORDER_SERVICE_URL },
+  { path: '/api/vouchers', target: process.env.ORDER_SERVICE_URL },
   { path: '/api/payments', target: process.env.PAYMENT_SERVICE_URL },
   { path: '/api/employees', target: process.env.USER_SERVICE_URL },
   { path: '/api/analytics', target: process.env.ANALYTICS_SERVICE_URL },
+  // Static uploads served by product-service
+  { path: '/uploads/products', target: process.env.PRODUCT_SERVICE_URL },
 ];
 
 const registerProxies = (app) => {

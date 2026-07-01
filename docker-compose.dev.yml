@@ -7,7 +7,7 @@
 # Kế thừa từ docker-compose.yml chính
 services:
   # ============ BACKEND SERVICES ============
-  # Tất cả services dùng node --watch (Node 18+) để tự restart khi code thay đổi
+  # Tất cả services dùng node --watch (Node 20+) để tự restart khi code thay đổi
   auth-service:
     volumes:
       - ./shared:/app/shared

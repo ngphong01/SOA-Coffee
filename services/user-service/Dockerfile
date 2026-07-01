@@ -1,10 +1,12 @@
-FROM node:18-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
+RUN apk add --no-cache wget
+
 COPY shared/package*.json ./shared/
 COPY services/user-service/package*.json ./services/user-service/
-RUN npm install --prefix shared --omit=dev && npm install --prefix services/user-service --omit=dev && npm cache clean --force
+RUN npm install --prefix shared --omit=dev --no-cache && npm install --prefix services/user-service --omit=dev --no-cache
 
 COPY shared ./shared
 COPY services/user-service/src ./services/user-service/src/

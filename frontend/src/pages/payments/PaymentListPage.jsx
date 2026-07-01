@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { paymentsAPI } from '../../api/payments.api';
 import DataTable from '../../components/common/DataTable';
 import StatusBadge from '../../components/common/StatusBadge';
-import { CreditCard, Banknote, Wallet, BarChart3 } from 'lucide-react';
+import { CreditCard, Banknote, Wallet, BarChart3 } from "../../utils/icons";
 import toast from 'react-hot-toast';
 
 const formatCurrency = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0);

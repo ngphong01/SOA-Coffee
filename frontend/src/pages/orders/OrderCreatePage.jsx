@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { productsAPI } from '../../api/products.api';
 import { ordersAPI } from '../../api/orders.api';
 import { paymentsAPI } from '../../api/payments.api';
-import { Plus, Minus, ShoppingCart, CreditCard } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, CreditCard } from "../../utils/icons";
 import toast from 'react-hot-toast';
 
 const formatCurrency = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0);

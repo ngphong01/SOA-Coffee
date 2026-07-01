@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Mail, Phone, Briefcase, CalendarDays, BadgeCheck, Pencil, Save, Camera, User } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Briefcase, CalendarDays, BadgeCheck, Pencil, Save, Camera, User } from "../../utils/icons";
 import { employeesAPI } from '../../api/employees.api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import StatusBadge from '../../components/common/StatusBadge';
@@ -39,10 +39,14 @@ export default function EmployeeDetailPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await employeesAPI.update(id, { ...form, salary: form.salary === '' ? '' : Number(form.salary), avatar_url: form.avatar_url || undefined });
+      await employeesAPI.update(id, {
+        ...form,
+        salary: form.salary === '' ? null : Number(form.salary),
+        avatar_url: form.avatar_url || null,
+      });
       toast.success('Đã cập nhật nhân viên');
-      setEditing(false);
       await load();
+      setEditing(false);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Không lưu được nhân viên');
     } finally {
@@ -66,8 +70,8 @@ export default function EmployeeDetailPage() {
               {employee.full_name?.charAt(0)?.toUpperCase()}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 font-sans">{employee.full_name}</h1>
-              <p className="text-sm text-gray-500 font-sans">{employee.employee_code || '—'}</p>
+              <h1 className="text-2xl font-bold text-gray-900">{employee.full_name}</h1>
+              <p className="text-sm text-gray-500">{employee.employee_code || '—'}</p>
             </div>
           </div>
           <button type="button" onClick={() => setEditing((v) => !v)} className="btn-secondary"><Pencil size={16} /> {editing ? 'Hủy sửa' : 'Chỉnh sửa'}</button>

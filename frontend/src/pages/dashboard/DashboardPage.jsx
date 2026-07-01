@@ -7,7 +7,7 @@ import {
 import {
   DollarSign, ShoppingCart, Package, Users, FolderTree, AlertTriangle,
   CreditCard, LogIn, TrendingUp, Coffee, Clock, ArrowUpRight
-} from 'lucide-react';
+} from "../../utils/icons";
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const fmt = (v) => new Intl.NumberFormat('vi-VN').format(v || 0);

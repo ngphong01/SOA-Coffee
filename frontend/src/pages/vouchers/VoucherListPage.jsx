@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios.config';
 import toast from 'react-hot-toast';
-import { Ticket, Plus, Edit, Trash2, X, Save, Search } from 'lucide-react';
+import { Ticket, Plus, Edit, Trash2, X, Save, Search } from "../../utils/icons";
 
 const vnd = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0);
 

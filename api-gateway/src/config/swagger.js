@@ -10,7 +10,6 @@ const swaggerDocument = {
   },
   servers: [
     { url: 'http://localhost:3000/api', description: 'Development' },
-    { url: 'https://coffeshopsystem.io.vn/api', description: 'Production' },
   ],
   components: {
     securitySchemes: {

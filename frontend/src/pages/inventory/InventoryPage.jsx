@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { inventoryAPI } from '../../api/inventory.api';
-import { AlertTriangle, ArrowRight, Package, Plus, Search, TrendingDown } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Package, Plus, Search, TrendingDown } from "../../utils/icons";
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
 import DataTable from '../../components/common/DataTable';

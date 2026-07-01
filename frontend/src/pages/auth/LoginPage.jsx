@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Coffee, Loader2, Mail, Lock, ArrowRight } from 'lucide-react';
+import { Coffee, Loader2, Mail, Lock, ArrowRight } from "../../utils/icons";
 import { login } from '../../store/slices/authSlice';
 import toast from 'react-hot-toast';
 

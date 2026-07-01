@@ -1,6 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const controller = require('../controllers/payment.controller');
+const stripeController = require('../controllers/stripe.controller');
 const validate = require('../../../../shared/middleware/validate');
 const asyncHandler = require('../../../../shared/middleware/asyncHandler');
 
@@ -23,5 +24,9 @@ router.get('/:id', asyncHandler(controller.getOne));
 router.post('/process', processRules, validate, asyncHandler(controller.processPayment));
 router.post('/:id/refund', refundRules, validate, asyncHandler(controller.processRefund));
 router.delete('/:id', asyncHandler(controller.remove));
+
+// Stripe checkout routes
+router.post('/stripe/create-session', asyncHandler(stripeController.createCheckoutSession));
+router.post('/stripe/confirm', asyncHandler(stripeController.confirmPayment));
 
 module.exports = router;

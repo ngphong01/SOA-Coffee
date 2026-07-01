@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Clock, Phone, Star, Navigation, ChevronDown, Search, Smartphone, Gift, Zap, Coffee, Store } from 'lucide-react';
+import { MapPin, Clock, Phone, Star, Navigation, ChevronDown, Search, Smartphone, Gift, Zap, Coffee, Store } from "../../utils/icons";
 import toast from 'react-hot-toast';
 
 const STORES = [

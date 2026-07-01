@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Eye, EyeOff, Coffee, Loader2, User, Mail, Phone, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Coffee, Loader2, User, Mail, Phone, Lock, ArrowRight, ShieldCheck } from "../../utils/icons";
 import { authAPI } from '../../api/auth.api';
 import toast from 'react-hot-toast';
 

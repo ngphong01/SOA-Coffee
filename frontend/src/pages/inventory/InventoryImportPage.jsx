@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Save, Trash2 } from "../../utils/icons";
 import { inventoryAPI } from '../../api/inventory.api';
 import { productsAPI } from '../../api/products.api';
 import toast from 'react-hot-toast';

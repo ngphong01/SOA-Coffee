@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { Save, Settings, Shield, Store, Users, Camera, Upload, Mail, Phone, MapPin, Globe, Clock } from 'lucide-react';
+import { Save, Settings, Shield, Store, Users, Camera, Upload, Mail, Phone, MapPin, Globe, Clock } from "../../utils/icons";
 import toast from 'react-hot-toast';
 import { settingsAPI } from '../../api/settings.api';
 import { useAuth } from '../../hooks/useAuth';

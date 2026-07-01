@@ -5,7 +5,7 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell,
 } from 'recharts';
-import { DollarSign, TrendingUp, ShoppingCart, Tag } from 'lucide-react';
+import { DollarSign, TrendingUp, ShoppingCart, Tag } from "../../utils/icons";
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const formatCurrency = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0);
@@ -30,7 +30,16 @@ export default function RevenueAnalyticsPage() {
 
   if (loading && !revenue) return <LoadingSpinner />;
 
-  const { summary, chartData, paymentBreakdown, hourlyData } = revenue || {};
+  // Map backend camelCase → frontend usage
+  const summary = {
+    total_revenue: revenue?.summary?.totalRevenue || 0,
+    total_orders: revenue?.summary?.orderCount || 0,
+    avg_order_value: revenue?.summary?.avgOrderValue || 0,
+    total_discounts: revenue?.summary?.totalDiscounts || 0,
+  };
+  const chartData = revenue?.revenueByDay || [];
+  const paymentBreakdown = revenue?.revenueByPaymentMethod || [];
+  const hourlyData = revenue?.hourlyData || [];
 
   return (
     <div className="space-y-5">

@@ -1,17 +1,19 @@
-FROM node:18-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
+RUN apk add --no-cache wget
+
 COPY shared/package*.json ./shared/
 COPY services/payment-service/package*.json ./services/payment-service/
-RUN npm install --prefix shared --omit=dev && npm install --prefix services/payment-service --omit=dev && npm cache clean --force
+RUN npm install --prefix shared --omit=dev --no-cache && npm install --prefix services/payment-service --omit=dev --no-cache
 
 COPY shared ./shared
 COPY services/payment-service/src ./services/payment-service/src/
 
 RUN addgroup -g 1001 -S nodejs \
- && adduser -S nodeuser -u 1001 \
- && chown -R nodeuser:nodejs /app
+  && adduser -S nodeuser -u 1001 \
+  && chown -R nodeuser:nodejs /app
 USER nodeuser
 
 ENV PORT=3007

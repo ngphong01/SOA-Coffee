@@ -5,8 +5,8 @@ import {
   User, Phone, MapPin, StickyNote, CreditCard,
   Banknote, Smartphone, Building2, ShoppingBag,
   Shield, Clock, Gift, AlertCircle, Loader2,
-  CheckCircle2, Package, ArrowRight
-} from 'lucide-react';
+  CheckCircle2, Package, ArrowRight, QrCode, Copy
+} from "../../utils/icons";
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../api/axios.config';
 import toast from 'react-hot-toast';
@@ -17,11 +17,23 @@ const vnd = (v) =>
 const getCart = () => JSON.parse(localStorage.getItem('cart') || '[]');
 
 const PAYMENT_METHODS = [
-  { key: 'cash', label: 'Tiền mặt', desc: 'Thanh toán khi nhận hàng', Icon: Banknote, color: 'emerald', active: 'border-emerald-500 bg-emerald-50', dot: 'bg-emerald-500', text: 'text-emerald-700', ring: 'focus-within:ring-emerald-100' },
-  { key: 'card', label: 'Thẻ ngân hàng', desc: 'Visa, Mastercard, JCB', Icon: CreditCard, color: 'blue', active: 'border-blue-500 bg-blue-50', dot: 'bg-blue-500', text: 'text-blue-700', ring: 'focus-within:ring-blue-100' },
-  { key: 'e-wallet', label: 'Ví điện tử', desc: 'MoMo, ZaloPay, VNPay', Icon: Smartphone, color: 'violet', active: 'border-violet-500 bg-violet-50', dot: 'bg-violet-500', text: 'text-violet-700', ring: 'focus-within:ring-violet-100' },
-  { key: 'bank_transfer', label: 'Chuyển khoản', desc: 'Internet Banking', Icon: Building2, color: 'amber', active: 'border-amber-500 bg-amber-50', dot: 'bg-amber-500', text: 'text-amber-700', ring: 'focus-within:ring-amber-100' },
+  { key: 'stripe',   label: 'Thẻ (Stripe)',   desc: 'Visa, Mastercard, JCB',      Icon: CreditCard, color: 'blue',    active: 'border-blue-500 bg-blue-50',    dot: 'bg-blue-500',    text: 'text-blue-700',    ring: 'focus-within:ring-blue-100' },
+  { key: 'qr_bank',  label: 'QR Ngân hàng',   desc: 'TP Bank',                     Icon: Building2,  color: 'violet',  active: 'border-violet-500 bg-violet-50', dot: 'bg-violet-500',   text: 'text-violet-700',  ring: 'focus-within:ring-violet-100' },
+  { key: 'qr_momo',  label: 'Ví MoMo',         desc: 'Quét mã MoMo',               Icon: Smartphone, color: 'pink',    active: 'border-pink-500 bg-pink-50',    dot: 'bg-pink-500',    text: 'text-pink-700',    ring: 'focus-within:ring-pink-100' },
+  { key: 'cash',     label: 'Tiền mặt',        desc: 'Thanh toán khi nhận hàng',   Icon: Banknote,   color: 'emerald', active: 'border-emerald-500 bg-emerald-50', dot: 'bg-emerald-500', text: 'text-emerald-700', ring: 'focus-within:ring-emerald-100' },
 ];
+
+// Bank & MOMO info
+const BANK_INFO = {
+  bank: 'TP Bank',
+  accountNumber: '77601112004',
+  accountName: 'NGUYEN VAN ANH',
+  branch: 'Hội sở',
+};
+const MOMO_INFO = {
+  phone: '0868314386',
+  name: 'NGUYEN VAN ANH',
+};
 
 const ORDER_TYPES = [
   { key: 'takeaway', label: 'Mang đi', emoji: '🥡', desc: 'Nhận tại quầy' },
@@ -75,14 +87,14 @@ function OrderSummary({ cart, subtotal, discount, shipFee, total, appliedVoucher
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
       <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
         <h3 className="font-bold text-gray-800 flex items-center gap-2"><ShoppingBag size={16} className="text-amber-500" /> Đơn hàng</h3>
-        <span className="text-xs font-bold bg-amber-100 text-amber-600 px-2.5 py-1 rounded-full">{cart.reduce((s, i) => s + i.qty, 0)} món</span>
+        <span className="text-xs font-bold bg-amber-100 text-amber-600 px-2.5 py-1 rounded-full">{cart.reduce((s, i) => s + (i.quantity || i.qty || 1), 0)} món</span>
       </div>
       <div className={`px-5 divide-y divide-gray-50 ${compact ? 'max-h-48 overflow-y-auto' : ''}`}>
         {cart.map((item) => (
           <div key={item.id} className="flex items-center gap-3 py-3">
             <div className="w-10 h-10 rounded-xl overflow-hidden bg-amber-50 flex-shrink-0 border border-gray-100"><img src={item.thumbnail_url || '/logo.svg'} alt={item.name} className="w-full h-full object-cover" onError={(e) => (e.target.src = '/logo.svg')} /></div>
-            <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-800 truncate">{item.name}</p><p className="text-xs text-gray-400">{vnd(item.price)} × {item.qty}</p></div>
-            <p className="text-sm font-bold text-gray-700 flex-shrink-0">{vnd(item.price * item.qty)}</p>
+            <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-800 truncate">{item.name}</p><p className="text-xs text-gray-400">{vnd(item.price)} × {(item.quantity || item.qty || 1)}</p></div>
+            <p className="text-sm font-bold text-gray-700 flex-shrink-0">{vnd(item.price * (item.quantity || item.qty || 1))}</p>
           </div>
         ))}
       </div>
@@ -139,7 +151,8 @@ export default function CheckoutPage() {
 
   const [form, setForm] = useState({ full_name: user?.full_name || '', phone: user?.phone || '', address: user?.address || '', note: '', order_type: 'takeaway' });
   const [errors, setErrors] = useState({});
-  const [method, setMethod] = useState('cash');
+  const [method, setMethod] = useState('stripe');
+  const [stripeLoading, setStripeLoading] = useState(false);
 
   const [appliedVoucher, setAppliedVoucher] = useState(null);
   const [voucherCode, setVoucherCode] = useState('');
@@ -154,7 +167,7 @@ export default function CheckoutPage() {
     if (user) setForm((f) => ({ ...f, full_name: f.full_name || user.full_name || '', phone: f.phone || user.phone || '', address: f.address || user.address || '' }));
   }, [user]);
 
-  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const subtotal = cart.reduce((s, i) => s + i.price * (i.quantity || i.qty || 1), 0);
   const discount = (() => { if (!appliedVoucher) return 0; if (appliedVoucher.type === 'percent' || appliedVoucher.type === 'percentage') return Math.round(subtotal * appliedVoucher.value / 100); if (appliedVoucher.type === 'fixed') return Math.min(appliedVoucher.value, subtotal); return 0; })();
   const shipFee = (() => { if (form.order_type !== 'delivery') return 0; if (appliedVoucher?.type === 'ship') return 0; return subtotal - discount >= 150000 ? 0 : 15000; })();
   const total = Math.max(0, subtotal - discount + shipFee);
@@ -186,14 +199,53 @@ export default function CheckoutPage() {
   const submitOrder = async () => {
     setLoading(true);
     try {
-      const orderRes = await api.post('/orders', { order_type: form.order_type, items: cart.map((i) => ({ product_id: i.id, quantity: i.qty, unit_price: i.price })), note: form.note, customer_name: form.full_name, customer_phone: form.phone, customer_address: form.address, voucher_code: appliedVoucher?.code || null, discount_amount: discount, total_amount: total });
+      const orderRes = await api.post('/orders', {
+        type: form.order_type,
+        items: cart.map((i) => ({ product_id: i.id, quantity: (i.quantity || i.qty || 1), unit_price: i.price })),
+        notes: form.note,
+        customer_id: user?.id || null,
+        coupon_code: appliedVoucher?.code || null,
+      });
       const oid = orderRes.data.data?.id || orderRes.data.data?.orderId || orderRes.data.id;
-      await api.post('/payments/process', { order_id: oid, method, amount: total });
-      localStorage.removeItem('cart'); sessionStorage.removeItem('checkout_meta');
+
+      // ── Stripe: tạo checkout session → redirect ──
+      if (method === 'stripe') {
+        setStripeLoading(true);
+        const stripeRes = await api.post('/payments/stripe/create-session', {
+          order_id: oid,
+          amount: total,
+          order_type: form.order_type,
+        });
+        const { url } = stripeRes.data.data || stripeRes.data;
+        if (url) {
+          localStorage.removeItem('cart');
+          sessionStorage.removeItem('checkout_meta');
+          sessionStorage.setItem('pending_order_id', oid);
+          window.location.href = url;
+          return;
+        }
+        toast.error('Không thể tạo phiên thanh toán Stripe');
+        setStripeLoading(false);
+        setLoading(false);
+        return;
+      }
+
+      // ── QR Bank / MoMo / Cash: xử lý bình thường ──
+      await api.post('/payments/process', {
+        order_id: oid,
+        method: method === 'qr_bank' ? 'bank_transfer' : method === 'qr_momo' ? 'e_wallet' : 'cash',
+        amount: total,
+      });
+      localStorage.removeItem('cart');
+      sessionStorage.removeItem('checkout_meta');
       window.dispatchEvent(new Event('cart-updated'));
-      setOrderId(oid); setStep('success');
-    } catch (err) { toast.error(err.response?.data?.message || 'Đặt hàng thất bại. Vui lòng thử lại!'); }
-    finally { setLoading(false); }
+      setOrderId(oid);
+      setStep('success');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Đặt hàng thất bại. Vui lòng thử lại!');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isAuthenticated) return (
@@ -274,8 +326,120 @@ export default function CheckoutPage() {
                 <div className="space-y-3">
                   {PAYMENT_METHODS.map((m) => { const isActive = method === m.key; return (<button key={m.key} type="button" onClick={() => setMethod(m.key)} className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all ${isActive ? `${m.active} shadow-sm scale-[1.01]` : 'border-gray-200 bg-white hover:border-gray-300'}`}><div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${isActive ? 'bg-white shadow-md' : 'bg-gray-50'}`}><m.Icon size={22} className={isActive ? m.text : 'text-gray-400'} /></div><div className="flex-1"><p className={`font-bold text-sm ${isActive ? m.text : 'text-gray-700'}`}>{m.label}</p><p className="text-xs text-gray-400 mt-0.5">{m.desc}</p></div><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isActive ? `${m.dot} border-transparent` : 'border-gray-300'}`}>{isActive && <Check size={11} className="text-white" />}</div></button>); })}
                 </div>
-                {method === 'e-wallet' && <div className="mt-4 p-4 bg-violet-50 border border-violet-200 rounded-2xl flex items-start gap-3"><Smartphone size={18} className="text-violet-500 flex-shrink-0 mt-0.5" /><p className="text-violet-700 text-xs leading-relaxed">Sau khi xác nhận, bạn sẽ được chuyển đến trang thanh toán của ví điện tử. Đơn hàng sẽ được xác nhận sau khi thanh toán thành công.</p></div>}
-                {method === 'bank_transfer' && <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-2xl"><p className="text-amber-700 text-xs font-semibold mb-2">Thông tin chuyển khoản:</p><div className="space-y-1 text-xs text-amber-600"><p>Ngân hàng: <span className="font-bold">Vietcombank</span></p><p>Số TK: <span className="font-bold">1234 5678 9012</span></p><p>Chủ TK: <span className="font-bold">CÔNG TY COFFEEOS</span></p><p>Nội dung: <span className="font-bold">THANHTOAN {form.phone}</span></p></div></div>}
+
+                {/* ── Stripe Info ── */}
+                {method === 'stripe' && (
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-2xl">
+                    <div className="flex items-start gap-3 mb-3">
+                      <CreditCard size={18} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-blue-700 text-sm font-bold">Thanh toán an toàn với Stripe</p>
+                        <p className="text-blue-600 text-xs mt-0.5">Chấp nhận Visa, Mastercard, JCB, AMEX. Bảo mật SSL 256-bit.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {['Visa', 'Mastercard', 'JCB', 'AMEX'].map((c) => (
+                        <span key={c} className="bg-white border border-blue-200 rounded-lg px-3 py-1.5 text-[11px] font-bold text-blue-600 shadow-sm">{c}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── QR Ngân hàng TP Bank ── */}
+                {method === 'qr_bank' && (
+                  <div className="mt-4 p-5 bg-violet-50 border border-violet-200 rounded-2xl">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Building2 size={18} className="text-violet-600" />
+                      <p className="text-violet-700 text-sm font-bold">Quét mã QR để thanh toán</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-5">
+                      <div className="flex-shrink-0 flex flex-col items-center">
+                        <div className="bg-white rounded-2xl p-3 shadow-sm border border-violet-100">
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`TPBank:${BANK_INFO.accountNumber}:${BANK_INFO.accountName}:${total}`)}`}
+                            alt="QR TP Bank"
+                            className="w-[180px] h-[180px] rounded-xl"
+                          />
+                        </div>
+                        <p className="text-[10px] text-violet-400 mt-1.5">Quét bằng app ngân hàng</p>
+                      </div>
+                      <div className="flex-1 space-y-2.5">
+                        {[
+                          { label: 'Ngân hàng', value: BANK_INFO.bank },
+                          { label: 'Số tài khoản', value: BANK_INFO.accountNumber, copy: true },
+                          { label: 'Chủ tài khoản', value: BANK_INFO.accountName },
+                          { label: 'Chi nhánh', value: BANK_INFO.branch },
+                          { label: 'Số tiền', value: vnd(total), highlight: true },
+                          { label: 'Nội dung', value: `THANHTOAN ${form.phone}`, copy: true },
+                        ].map(({ label, value, copy: canCopy, highlight }) => (
+                          <div key={label} className="flex items-center justify-between">
+                            <span className="text-xs text-violet-500">{label}</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-xs font-bold ${highlight ? 'text-violet-700 text-sm' : 'text-violet-800'}`}>{value}</span>
+                              {canCopy && (
+                                <button onClick={() => { navigator.clipboard.writeText(String(value)); toast.success('Đã sao chép!'); }}
+                                  className="w-6 h-6 rounded-lg bg-violet-100 flex items-center justify-center hover:bg-violet-200 transition">
+                                  <Copy size={10} className="text-violet-500" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── QR MoMo ── */}
+                {method === 'qr_momo' && (
+                  <div className="mt-4 p-5 bg-pink-50 border border-pink-200 rounded-2xl">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Smartphone size={18} className="text-pink-600" />
+                      <p className="text-pink-700 text-sm font-bold">Quét mã MoMo để thanh toán</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-5">
+                      <div className="flex-shrink-0 flex flex-col items-center">
+                        <div className="bg-white rounded-2xl p-3 shadow-sm border border-pink-100">
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`2:99:${MOMO_INFO.phone}:${total}:THANHTOAN`)}`}
+                            alt="QR MoMo"
+                            className="w-[180px] h-[180px] rounded-xl"
+                          />
+                        </div>
+                        <p className="text-[10px] text-pink-400 mt-1.5">Quét bằng app MoMo</p>
+                      </div>
+                      <div className="flex-1 space-y-2.5">
+                        {[
+                          { label: 'Ví MoMo', value: MOMO_INFO.phone, copy: true },
+                          { label: 'Tên chủ ví', value: MOMO_INFO.name },
+                          { label: 'Số tiền', value: vnd(total), highlight: true },
+                          { label: 'Nội dung', value: `THANHTOAN ${form.phone}`, copy: true },
+                        ].map(({ label, value, copy: canCopy, highlight }) => (
+                          <div key={label} className="flex items-center justify-between">
+                            <span className="text-xs text-pink-500">{label}</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-xs font-bold ${highlight ? 'text-pink-700 text-sm' : 'text-pink-800'}`}>{value}</span>
+                              {canCopy && (
+                                <button onClick={() => { navigator.clipboard.writeText(String(value)); toast.success('Đã sao chép!'); }}
+                                  className="w-6 h-6 rounded-lg bg-pink-100 flex items-center justify-center hover:bg-pink-200 transition">
+                                  <Copy size={10} className="text-pink-500" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Cash Info ── */}
+                {method === 'cash' && (
+                  <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-start gap-3">
+                    <Banknote size={18} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-emerald-700 text-xs leading-relaxed">Bạn sẽ thanh toán bằng tiền mặt khi nhận hàng. Vui lòng chuẩn bị số tiền chính xác để giao dịch nhanh chóng hơn.</p>
+                  </div>
+                )}
               </div>
               <div className="flex gap-3">
                 <button onClick={() => setStep(1)} className="flex items-center gap-2 border-2 border-gray-200 text-gray-600 font-semibold px-6 py-4 rounded-2xl hover:border-amber-300 hover:text-amber-600 transition-all"><ChevronLeft size={18} /> Quay lại</button>
@@ -299,7 +463,12 @@ export default function CheckoutPage() {
               <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl"><Clock size={18} className="text-amber-500 flex-shrink-0" /><p className="text-amber-700 text-xs leading-relaxed"><span className="font-bold">Thời gian dự kiến:</span> {form.order_type === 'delivery' ? '30 – 45 phút' : form.order_type === 'dine_in' ? '5 – 10 phút' : '5 – 15 phút kể từ khi xác nhận đơn'}</p></div>
               <div className="flex gap-3">
                 <button onClick={() => setStep(2)} className="flex items-center gap-2 border-2 border-gray-200 text-gray-600 font-semibold px-6 py-4 rounded-2xl hover:border-amber-300 hover:text-amber-600 transition-all"><ChevronLeft size={18} /> Quay lại</button>
-                <button onClick={submitOrder} disabled={loading} className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-extrabold py-4 rounded-2xl hover:from-green-400 hover:to-emerald-400 transition-all hover:scale-[1.02] shadow-lg shadow-green-200 text-base disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">{loading ? (<><Loader2 size={20} className="animate-spin" />Đang xử lý...</>) : (<><Check size={20} />Xác nhận · {vnd(total)}</>)}</button>
+                <button onClick={submitOrder} disabled={loading || stripeLoading}
+                  className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-extrabold py-4 rounded-2xl hover:from-green-400 hover:to-emerald-400 transition-all hover:scale-[1.02] shadow-lg shadow-green-200 text-base disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+                  {(loading || stripeLoading) ? (<><Loader2 size={20} className="animate-spin" />{stripeLoading ? 'Đang chuyển đến Stripe...' : 'Đang xử lý...'}</>)
+                    : method === 'stripe' ? (<><CreditCard size={20} />Thanh toán qua Stripe · {vnd(total)}</>)
+                    : (<><Check size={20} />Xác nhận · {vnd(total)}</>)}
+                </button>
               </div>
             </>)}
           </div>

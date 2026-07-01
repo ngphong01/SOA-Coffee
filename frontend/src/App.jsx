@@ -55,16 +55,18 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/menu" element={<MenuPage />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/orders" element={<OrderHistoryPage />} />
-        <Route path="/my-orders/:id" element={<CustomerOrderDetailPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/promotions" element={<PromotionsPage />} />
         <Route path="/stores" element={<StoresPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
+
+        {/* Protected customer routes */}
+        <Route path="/cart" element={<PrivateRoute><CartPage /></PrivateRoute>} />
+        <Route path="/checkout" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
+        <Route path="/orders" element={<PrivateRoute><OrderHistoryPage /></PrivateRoute>} />
+        <Route path="/my-orders/:id" element={<PrivateRoute><CustomerOrderDetailPage /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+        <Route path="/wishlist" element={<PrivateRoute><WishlistPage /></PrivateRoute>} />
       </Route>
 
       {/* Auth pages */}

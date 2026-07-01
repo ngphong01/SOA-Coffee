@@ -21,8 +21,13 @@ const updateCustomerRules = [
 
 const profileRules = [
   body('full_name').optional().trim().notEmpty(),
+  body('name').optional().trim().notEmpty(),
   body('phone').optional().isString(),
   body('avatar_url').optional().isString(),
+  body('date_of_birth').optional({ nullable: true }).isString(),
+  body('birthday').optional({ nullable: true }).isString(),
+  body('gender').optional({ nullable: true }).isIn(['male', 'female', 'other']),
+  body('address').optional({ nullable: true }).isString(),
 ];
 
 router.get('/customers', asyncHandler(controller.getAllCustomers));
@@ -33,6 +38,7 @@ router.put('/customers/:id', updateCustomerRules, validate, asyncHandler(control
 router.delete('/customers/:id', param('id').isInt({ min: 1 }), validate, asyncHandler(controller.deleteCustomer));
 
 router.get('/', asyncHandler(controller.getAllUsers));
+router.get('/profile', asyncHandler(controller.getProfile));
 router.patch('/profile', profileRules, validate, asyncHandler(controller.updateProfile));
 router.patch('/:id/status', param('id').isInt({ min: 1 }), validate, asyncHandler(controller.toggleUserStatus));
 

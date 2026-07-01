@@ -4,7 +4,7 @@ import {
   Tag, Clock, Heart, ChevronRight, Gift, Truck,
   Star, Users, Percent, Copy, Check, AlertCircle,
   Shield, Zap, ArrowRight, Timer
-} from 'lucide-react';
+} from "../../utils/icons";
 import api from '../../api/axios.config';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';

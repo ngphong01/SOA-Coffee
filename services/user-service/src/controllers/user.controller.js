@@ -215,32 +215,100 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
+exports.getProfile = async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'];
+    if (!userId) return ApiResponse.unauthorized(res, 'User not authenticated');
+
+    const [user, customer] = await Promise.all([
+      queryOne(
+        'SELECT u.id, u.full_name, u.email, u.phone, u.avatar_url, r.name AS role FROM auth_db.users u LEFT JOIN auth_db.roles r ON u.role_id = r.id WHERE u.id = ? AND u.deleted_at IS NULL',
+        [userId]
+      ),
+      queryOne(
+        'SELECT date_of_birth, gender, address, loyalty_points FROM user_db.customers WHERE id = ? AND deleted_at IS NULL',
+        [userId]
+      ),
+    ]);
+
+    if (!user) return ApiResponse.notFound(res, 'User not found');
+
+    return ApiResponse.success(res, {
+      ...user,
+      date_of_birth: customer?.date_of_birth || null,
+      gender: customer?.gender || null,
+      address: customer?.address || null,
+      loyalty_points: customer?.loyalty_points || 0,
+    });
+  } catch (error) {
+    logger.error('Get profile error:', error);
+    throw error;
+  }
+};
+
 exports.updateProfile = async (req, res) => {
   try {
     const userId = req.headers['x-user-id'];
     if (!userId) return ApiResponse.unauthorized(res, 'User not authenticated');
 
-    const { full_name, phone, avatar_url } = req.body;
-    const updates = [];
-    const params = [];
+    const { full_name, name, phone, avatar_url, date_of_birth, birthday, gender, address } = req.body;
 
-    if (full_name !== undefined) { updates.push('full_name = ?'); params.push(full_name); }
-    if (phone !== undefined) { updates.push('phone = ?'); params.push(phone); }
-    if (avatar_url !== undefined) { updates.push('avatar_url = ?'); params.push(avatar_url); }
+    // ── Update auth_db.users ──
+    const userUpdates = [];
+    const userParams = [];
 
-    if (updates.length === 0) return ApiResponse.badRequest(res, 'No fields to update');
+    const displayName = full_name || name;
+    if (displayName !== undefined) { userUpdates.push('full_name = ?'); userParams.push(displayName); }
+    if (phone !== undefined) { userUpdates.push('phone = ?'); userParams.push(phone); }
+    if (avatar_url !== undefined) { userUpdates.push('avatar_url = ?'); userParams.push(avatar_url); }
 
-    updates.push('updated_at = NOW()');
-    params.push(userId);
+    if (userUpdates.length > 0) {
+      userUpdates.push('updated_at = NOW()');
+      userParams.push(userId);
+      await query(`UPDATE auth_db.users SET ${userUpdates.join(', ')} WHERE id = ?`, userParams);
+    }
 
-    await query(`UPDATE auth_db.users SET ${updates.join(', ')} WHERE id = ?`, params);
+    // ── Update user_db.customers ──
+    const dob = date_of_birth || birthday;
+    if (dob !== undefined || gender !== undefined || address !== undefined) {
+      const custUpdates = [];
+      const custParams = [];
 
-    const updated = await queryOne(
-      'SELECT u.id, u.full_name, u.email, u.phone, u.avatar_url, r.name AS role FROM auth_db.users u LEFT JOIN auth_db.roles r ON u.role_id = r.id WHERE u.id = ?',
-      [userId]
-    );
+      if (dob !== undefined) { custUpdates.push('date_of_birth = ?'); custParams.push(dob); }
+      if (gender !== undefined) { custUpdates.push('gender = ?'); custParams.push(gender); }
+      if (address !== undefined) { custUpdates.push('address = ?'); custParams.push(address); }
 
-    return ApiResponse.success(res, updated, 'Profile updated');
+      custUpdates.push('updated_at = NOW()');
+      custParams.push(userId);
+
+      // UPSERT: update if exists, insert if not
+      await query(
+        `INSERT INTO user_db.customers (id, full_name, email, phone, date_of_birth, gender, address, created_at, updated_at)
+         VALUES (?, ?, '', '', ?, ?, ?, NOW(), NOW())
+         ON DUPLICATE KEY UPDATE ${custUpdates.join(', ')}`,
+        [userId, displayName || '', dob || null, gender || null, address || null, ...custParams]
+      );
+    }
+
+    // ── Return combined profile ──
+    const [user, customer] = await Promise.all([
+      queryOne(
+        'SELECT u.id, u.full_name, u.email, u.phone, u.avatar_url, r.name AS role FROM auth_db.users u LEFT JOIN auth_db.roles r ON u.role_id = r.id WHERE u.id = ?',
+        [userId]
+      ),
+      queryOne(
+        'SELECT date_of_birth, gender, address, loyalty_points FROM user_db.customers WHERE id = ? AND deleted_at IS NULL',
+        [userId]
+      ),
+    ]);
+
+    return ApiResponse.success(res, {
+      ...user,
+      date_of_birth: customer?.date_of_birth || null,
+      gender: customer?.gender || null,
+      address: customer?.address || null,
+      loyalty_points: customer?.loyalty_points || 0,
+    }, 'Profile updated');
   } catch (error) {
     logger.error('Update profile error:', error);
     throw error;

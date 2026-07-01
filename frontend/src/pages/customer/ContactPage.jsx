@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Clock, Mail, Phone, Globe, Send, ChevronDown, ChevronUp, Shield, Heart, Zap, ArrowRight, Facebook } from 'lucide-react';
+import { MapPin, Clock, Mail, Phone, Globe, Send, ChevronDown, ChevronUp, Shield, Heart, Zap, ArrowRight, Facebook } from "../../utils/icons";
 import toast from 'react-hot-toast';
 
 const CONTACT_INFO = [

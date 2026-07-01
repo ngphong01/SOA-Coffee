@@ -6,7 +6,7 @@ import {
   Coffee, Bike, AlertCircle, RotateCcw, Star,
   TrendingUp, Calendar, Filter, SlidersHorizontal,
   ArrowUpDown, Flame, X
-} from 'lucide-react';
+} from "../../utils/icons";
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../api/axios.config';
 import toast from 'react-hot-toast';

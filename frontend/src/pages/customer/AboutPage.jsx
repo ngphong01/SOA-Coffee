@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Play, ArrowRight, Facebook, Instagram, Linkedin } from 'lucide-react';
+import { Play, ArrowRight, Facebook, Instagram, Linkedin } from "../../utils/icons";
 
 const VALUES = [
   { icon: (<svg viewBox="0 0 40 40" fill="none" className="w-8 h-8"><path d="M20 8C14 8 10 13 10 18C10 24 14 28 20 28C26 28 30 24 30 18C30 13 26 8 20 8Z" stroke="#c8793a" strokeWidth="1.8" fill="rgba(200,121,58,0.08)"/><path d="M20 8C20 8 16 14 16 20" stroke="#c8793a" strokeWidth="1.5" strokeLinecap="round"/><path d="M14 12C16 15 18 18 16 22" stroke="#c8793a" strokeWidth="1.2" strokeLinecap="round"/></svg>), title: 'Chất lượng hàng đầu', desc: 'Chúng tôi cam kết mang đến những sản phẩm chất lượng từ nguyên liệu tốt nhất.' },

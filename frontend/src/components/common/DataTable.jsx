@@ -1,6 +1,6 @@
 import React from 'react';
 import LoadingSpinner from './LoadingSpinner';
-import { ChevronLeft, ChevronRight, Database } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Database } from "../../utils/icons";
 
 export default function DataTable({
   columns, data = [], loading, pagination, onPageChange, emptyMessage = 'Không có dữ liệu.',

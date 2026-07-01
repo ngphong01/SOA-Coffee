@@ -1,251 +1,233 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { employeesAPI } from '../../api/employees.api';
-import DataTable from '../../components/common/DataTable';
-import StatusBadge from '../../components/common/StatusBadge';
-import { Edit2, Eye, Plus, Search, UserCheck } from 'lucide-react';
-import toast from 'react-hot-toast';
+﻿import React, { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
+import {
+  Search, Plus, Edit2, Eye, RefreshCw, Mail, Phone,
+  Briefcase, User, Filter, ChevronLeft, ChevronRight,
+  Loader2, AlertCircle
+} from "../../utils/icons";
+import { employeesAPI } from "../../api/employees.api";
+import { toast } from "react-hot-toast";
 
-const EmployeeModal = ({ open, onClose, onSave, initial }) => {
-  const [form, setForm] = useState({
-    full_name: '',
-    email: '',
-    phone: '',
-    role: 'barista',
-    position: '',
-    department: '',
-    salary: '',
-    hire_date: new Date().toISOString().split('T')[0],
-    status: 'active',
-  });
-  const [saving, setSaving] = useState(false);
+const STATUS_MAP = {
+  active: { label: "Đang làm", color: "bg-green-100 text-green-700" },
+  on_leave: { label: "Nghỉ phép", color: "bg-yellow-100 text-yellow-700" },
+  inactive: { label: "Nghỉ việc", color: "bg-red-100 text-red-700" },
+  terminated: { label: "Đã sa thải", color: "bg-gray-100 text-gray-500" },
+};
 
-  useEffect(() => {
-    if (initial) {
-      setForm({
-        full_name: initial.full_name || '',
-        email: initial.email || '',
-        phone: initial.phone || '',
-        role: initial.role || 'barista',
-        position: initial.position || '',
-        department: initial.department || '',
-        salary: initial.salary || '',
-        hire_date: initial.hire_date ? String(initial.hire_date).slice(0, 10) : new Date().toISOString().split('T')[0],
-        status: initial.status || 'active',
-      });
-    }
-  }, [initial, open]);
-
-  if (!open) return null;
-
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!form.full_name.trim()) {
-      toast.error('Vui lòng nhập tên nhân viên');
-      return;
-    }
-    if (!form.email.trim()) {
-      toast.error('Vui lòng nhập email');
-      return;
-    }
-    setSaving(true);
-    try {
-      if (initial?.id) {
-        await employeesAPI.update(initial.id, form);
-        toast.success('Cập nhật nhân viên thành công');
-      } else {
-        await employeesAPI.create(form);
-        toast.success('Tạo nhân viên thành công');
-      }
-      onSave();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Không lưu được nhân viên');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
-        <h3 className="font-bold text-gray-900 text-lg mb-5">{initial?.id ? 'Chỉnh sửa nhân viên' : 'Thêm nhân viên'}</h3>
-        <form className="space-y-4" onSubmit={submit}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <label className="form-label">Họ và tên *</label>
-              <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="form-input" placeholder="Nguyễn Văn A" />
-            </div>
-            <div>
-              <label className="form-label">Email *</label>
-              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="form-input" placeholder="email@example.com" />
-            </div>
-            <div>
-              <label className="form-label">Số điện thoại</label>
-              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="form-input" placeholder="0912345678" />
-            </div>
-            <div>
-              <label className="form-label">Vai trò</label>
-              <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="form-input bg-white">
-                <option value="barista">Barista</option>
-                <option value="cashier">Cashier</option>
-                <option value="manager">Manager</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-            <div>
-              <label className="form-label">Chức danh</label>
-              <input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} className="form-input" placeholder="Shift Lead" />
-            </div>
-            <div>
-              <label className="form-label">Phòng ban</label>
-              <input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} className="form-input" placeholder="Vận hành" />
-            </div>
-            <div>
-              <label className="form-label">Lương</label>
-              <input type="number" value={form.salary} onChange={(e) => setForm({ ...form, salary: e.target.value })} className="form-input" placeholder="5000000" />
-            </div>
-            <div>
-              <label className="form-label">Ngày vào làm</label>
-              <input type="date" value={form.hire_date} onChange={(e) => setForm({ ...form, hire_date: e.target.value })} className="form-input" />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="form-label">Trạng thái</label>
-              <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="form-input bg-white">
-                <option value="active">Đang làm</option>
-                <option value="on_leave">Nghỉ phép</option>
-                <option value="inactive">Nghỉ việc</option>
-              </select>
-            </div>
-          </div>
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="btn-secondary flex-1">Hủy</button>
-            <button type="submit" disabled={saving} className="btn-primary flex-1">{saving ? 'Đang lưu...' : 'Lưu'}</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+const ROLE_LABELS = {
+  super_admin: "Super Admin",
+  admin: "Admin",
+  manager: "Quản lý",
+  cashier: "Thu ngân",
+  barista: "Pha chế",
+  viewer: "Xem",
 };
 
 export default function EmployeeListPage() {
   const [employees, setEmployees] = useState([]);
-  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [modal, setModal] = useState({ open: false, data: null });
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const LIMIT = 10;
 
-  const load = async () => {
+  const fetchEmployees = useCallback(async () => {
     setLoading(true);
     try {
-      const [eRes, sRes] = await Promise.all([
-        employeesAPI.getAll({ search, status: statusFilter, limit: 1000 }),
-        employeesAPI.getStats(),
-      ]);
-      setEmployees(eRes.data.data || []);
-      setStats(sRes.data.data || null);
-    } catch {
-      toast.error('Không tải được nhân viên');
+      const params = { page, limit: LIMIT };
+      if (search.trim()) params.search = search.trim();
+      if (statusFilter !== "all") params.status = statusFilter;
+      const r = await employeesAPI.getAll(params);
+      const data = r.data?.data || r.data || {};
+      setEmployees(Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : []);
+      setTotal(data.total || data.length || 0);
+    } catch (err) {
+      toast.error("Không tải được danh sách nhân viên");
       setEmployees([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search, statusFilter]);
 
-  useEffect(() => {
-    const t = setTimeout(() => load(), 300);
-    return () => clearTimeout(t);
-  }, [search, statusFilter]);
+  useEffect(() => { fetchEmployees(); }, [fetchEmployees]);
 
-  const filtered = useMemo(() => employees, [employees]);
+  const totalPages = Math.ceil(total / LIMIT);
 
-  const columns = [
-    {
-      key: 'full_name', label: 'Nhân viên',
-      render: (v, row) => (
-        <div className="flex items-center gap-3">
-          {row.avatar_url ? (
-            <img src={row.avatar_url} alt={v} className="w-10 h-10 rounded-full object-cover border-2 border-amber-200"
-              onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
-          ) : null}
-          <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center font-bold text-sm shadow-sm ${row.avatar_url ? 'hidden' : ''}`}>
-            {v?.charAt(0)?.toUpperCase()}
-          </div>
-          <div>
-            <p className="font-medium text-sm font-sans">{v}</p>
-            <p className="text-xs text-gray-500 font-sans">{row.email}</p>
-          </div>
-        </div>
-      ),
-    },
-    { key: 'employee_code', label: 'Mã', render: (v) => <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{v || '-'}</span> },
-    { key: 'position', label: 'Chức danh', render: (v) => v || '-' },
-    { key: 'department', label: 'Phòng ban', render: (v) => v || '-' },
-    { key: 'role_display', label: 'Vai trò' },
-    { key: 'hire_date', label: 'Ngày vào làm', render: (v) => (v ? new Date(v).toLocaleDateString('vi-VN') : '-') },
-    { key: 'status', label: 'Trạng thái', render: (v) => <StatusBadge status={v} /> },
-    {
-      key: 'actions', label: '',
-      render: (_, row) => (
-        <div className="flex items-center gap-2">
-          <Link to={`/employees/${row.id}`} className="px-3 py-1.5 text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg inline-flex items-center gap-1">
-            <Eye size={14} /> Xem chi tiết
-          </Link>
-          <button type="button" onClick={() => setModal({ open: true, data: row })} className="px-3 py-1.5 text-xs border border-amber-200 text-amber-700 hover:bg-amber-50 rounded-lg inline-flex items-center gap-1">
-            <Edit2 size={14} /> Sửa
-          </button>
-        </div>
-      ),
-    },
-  ];
+  const getInitials = (name) =>
+    (name || "N").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-title">Nhân viên</h1>
-          <p className="text-sm text-gray-500">Quản lý nhân sự, vai trò và trạng thái làm việc</p>
+          <h1 className="text-2xl font-bold text-gray-900">Nhân viên</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {total} nhân viên · Trang {page}/{totalPages || 1}
+          </p>
         </div>
-        <button type="button" onClick={() => setModal({ open: true, data: null })} className="btn-primary"><Plus size={16} /> Thêm nhân viên</button>
+        <div className="flex gap-2">
+          <button
+            onClick={fetchEmployees}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50 transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            Làm mới
+          </button>
+          <Link
+            to="/admin/employees/new"
+            className="flex items-center gap-1.5 bg-amber-800 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-amber-900 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Thêm nhân viên
+          </Link>
+        </div>
       </div>
 
-      {stats && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Tìm theo tên, email, mã NV..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-[13.5px] bg-gray-50 focus:bg-white outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all"
+          />
+        </div>
+        <div className="flex gap-1.5 flex-wrap">
           {[
-            { label: 'Tổng', value: stats.total, color: 'bg-blue-600' },
-            { label: 'Đang làm', value: stats.active, color: 'bg-green-600' },
-            { label: 'Nghỉ phép', value: stats.on_leave, color: 'bg-yellow-500' },
-            { label: 'Nghỉ việc', value: stats.inactive, color: 'bg-gray-400' },
-          ].map((s, i) => (
-            <div key={i} className="card flex items-center gap-3">
-              <div className={`w-10 h-10 ${s.color} rounded-xl flex items-center justify-center`}>
-                <UserCheck size={18} className="text-white" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">{s.label}</p>
-                <p className="font-bold text-xl">{s.value}</p>
+            { key: "all", label: "Tất cả" },
+            { key: "active", label: "Đang làm" },
+            { key: "on_leave", label: "Nghỉ phép" },
+            { key: "inactive", label: "Nghỉ việc" },
+          ].map((f) => (
+            <button
+              key={f.key}
+              onClick={() => { setStatusFilter(f.key); setPage(1); }}
+              className={`px-3.5 py-2 rounded-xl text-[12.5px] font-semibold border transition-all ${
+                statusFilter === f.key
+                  ? "bg-amber-800 text-white border-amber-800"
+                  : "bg-white text-gray-500 border-gray-200 hover:border-amber-300"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 animate-pulse">
+              <div className="flex gap-4 items-center">
+                <div className="w-10 h-10 bg-gray-100 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-100 rounded w-1/4" />
+                  <div className="h-3 bg-gray-100 rounded w-1/3" />
+                </div>
               </div>
             </div>
           ))}
         </div>
+      ) : employees.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center">
+          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+            <User className="w-8 h-8 text-gray-300" />
+          </div>
+          <p className="font-bold text-gray-600 text-[14px] mb-1">Không có nhân viên</p>
+          <p className="text-gray-400 text-[13px] mb-5">
+            {search ? "Không tìm thấy nhân viên phù hợp" : "Chưa có nhân viên nào trong hệ thống"}
+          </p>
+          {!search && (
+            <Link
+              to="/admin/employees/new"
+              className="inline-flex items-center gap-2 bg-amber-800 text-white font-bold px-6 py-2.5 rounded-xl text-[13.5px] hover:bg-amber-900 transition-colors"
+            >
+              <Plus className="w-4 h-4" /> Thêm nhân viên đầu tiên
+            </Link>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/50">
+                  <th className="text-left px-5 py-3.5 text-[12px] font-bold text-gray-500 uppercase tracking-wider">Nhân viên</th>
+                  <th className="text-left px-5 py-3.5 text-[12px] font-bold text-gray-500 uppercase tracking-wider hidden md:table-cell">Vai trò</th>
+                  <th className="text-left px-5 py-3.5 text-[12px] font-bold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Phòng ban</th>
+                  <th className="text-left px-5 py-3.5 text-[12px] font-bold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Trạng thái</th>
+                  <th className="text-right px-5 py-3.5 text-[12px] font-bold text-gray-500 uppercase tracking-wider">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {employees.map((emp) => {
+                  const statusMeta = STATUS_MAP[emp.status] || STATUS_MAP.active;
+                  const empId = emp.id || emp._id || emp.employee_id;
+                  return (
+                    <tr key={empId} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-100 to-amber-300 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0 overflow-hidden">
+                            {emp.avatar_url ? (
+                              <img src={emp.avatar_url} alt={emp.full_name} className="w-full h-full object-cover"
+                                onError={(e) => { e.target.style.display = "none"; }} />
+                            ) : null}
+                            <span>{getInitials(emp.full_name)}</span>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-gray-900 text-[13.5px] truncate">{emp.full_name || "Chưa có tên"}</p>
+                            <p className="text-[12px] text-gray-400 truncate">{emp.email || "—"}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 hidden md:table-cell">
+                        <span className="text-[13px] text-gray-700">{ROLE_LABELS[emp.role] || emp.role || "—"}</span>
+                      </td>
+                      <td className="px-5 py-3.5 hidden lg:table-cell">
+                        <span className="text-[13px] text-gray-700">{emp.department || "—"}</span>
+                      </td>
+                      <td className="px-5 py-3.5 hidden lg:table-cell">
+                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${statusMeta.color}`}>{statusMeta.label}</span>
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Link to={`/admin/employees/${empId}`} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-amber-700 hover:bg-amber-50 transition-colors"><Eye className="w-4 h-4" /></Link>
+                          <Link to={`/admin/employees/${empId}`} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"><Edit2 className="w-4 h-4" /></Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
-      <div className="card p-4 flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Tìm theo tên hoặc email..." className="form-input pl-9" />
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+            className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-gray-500 hover:border-amber-300 disabled:opacity-30 transition-all">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          {[...Array(totalPages)].map((_, i) => (
+            <button key={i} onClick={() => setPage(i + 1)}
+              className={`w-9 h-9 rounded-xl text-[13px] font-semibold transition-all ${
+                page === i + 1
+                  ? "bg-amber-800 text-white"
+                  : "border border-gray-200 text-gray-600 hover:border-amber-300"
+              }`}>
+              {i + 1}
+            </button>
+          ))}
+          <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+            className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-gray-500 hover:border-amber-300 disabled:opacity-30 transition-all">
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="form-input w-auto min-w-36 bg-white">
-          <option value="">Tất cả trạng thái</option>
-          <option value="active">Đang làm</option>
-          <option value="on_leave">Nghỉ phép</option>
-          <option value="inactive">Nghỉ việc</option>
-        </select>
-      </div>
-
-      <DataTable columns={columns} data={filtered} loading={loading} emptyMessage="Không có nhân viên." />
-
-      <EmployeeModal open={modal.open} onClose={() => setModal({ open: false, data: null })} onSave={() => { setModal({ open: false, data: null }); load(); }} initial={modal.data} />
+      )}
     </div>
   );
 }

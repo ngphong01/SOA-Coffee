@@ -21,7 +21,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({
-  origin: ['http://localhost', 'http://localhost:3000', 'https://coffeshopsystem.io.vn', 'https://www.coffeshopsystem.io.vn'],
+  origin: ['http://localhost', 'http://localhost:3000'],
   credentials: true,
 }));
 app.use(correlationId);

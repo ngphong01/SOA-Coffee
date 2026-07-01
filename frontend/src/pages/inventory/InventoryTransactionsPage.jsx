@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeftCircle, RefreshCw } from 'lucide-react';
+import { ArrowLeftCircle, RefreshCw } from "../../utils/icons";
 import { inventoryAPI } from '../../api/inventory.api';
 import DataTable from '../../components/common/DataTable';
 import toast from 'react-hot-toast';

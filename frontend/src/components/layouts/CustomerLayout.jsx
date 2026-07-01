@@ -408,10 +408,10 @@ export default function CustomerLayout() {
             <div>
               <p className="text-white font-bold text-sm mb-4 uppercase tracking-wider">Liên hệ</p>
               <ul className="space-y-3 text-sm">
-                <li>📍 123 Nguyễn Huệ, Q.1, TP.HCM</li>
-                <li>📞 (028) 1234 5678</li>
-                <li>✉️ hello@coffeeshop.vn</li>
-                <li>🕐 06:00 – 22:00 mỗi ngày</li>
+                <li>123 Nguyễn Huệ, Q.1, TP.HCM</li>
+                <li>(028) 1234 5678</li>
+                <li>hello@coffeeshop.vn</li>
+                <li>06:00 – 22:00 mỗi ngày</li>
               </ul>
               {/* Newsletter */}
               <div className="mt-5">

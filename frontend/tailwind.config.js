@@ -25,8 +25,28 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'SF Pro Display', 'system-ui', 'sans-serif'],
-        display: ['Playfair Display', 'Georgia', 'serif'],
+        // font-sans → dùng cho body, UI
+        sans: [
+          'Be Vietnam Pro',
+          'Noto Sans',
+          'system-ui',
+          '-apple-system',
+          'sans-serif',
+        ],
+        // font-display → dùng cho heading, logo
+        display: [
+          'Playfair Display',
+          'Be Vietnam Pro',
+          'Georgia',
+          'serif',
+        ],
+        // font-mono → code
+        mono: [
+          'JetBrains Mono',
+          'Fira Code',
+          'ui-monospace',
+          'monospace',
+        ],
       },
       boxShadow: {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
